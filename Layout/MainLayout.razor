@@ -1,16 +1,110 @@
-﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@inherits LayoutComponentBase
+@inject AppStateService AppState
+@implements IDisposable
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<div class="flex h-screen w-screen bg-canvas overflow-hidden font-sans select-none" data-theme="@AppState.Theme">
+    <NavMenu />
 
-        <article class="content px-4">
-            @Body
-        </article>
+    <main class="flex-1 flex flex-col h-full overflow-hidden bg-canvas">
+        @Body
     </main>
+
+    @if (AppState.IsCommandPaletteOpen)
+    {
+        <div class="fixed inset-0 bg-black/75 backdrop-blur-md z-[100] flex items-start justify-center pt-[12vh] animate-fade-in" @onclick="() => AppState.IsCommandPaletteOpen = false">
+            <div class="w-full max-w-[580px] bg-surface border border-line-strong rounded-2xl overflow-hidden shadow-palette" @onclick:stopPropagation="true">
+                <div class="flex items-center gap-3 px-5 py-4 border-b border-line">
+                    <svg class="w-[18px] h-[18px] text-ink-muted flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                    </svg>
+                    <input type="text" class="flex-1 bg-transparent border-none outline-none text-ink text-[0.975rem] placeholder:text-ink-muted" placeholder="Type a command or search reviewers..." autofocus @bind="searchQuery" @bind:event="oninput" />
+                    <span class="text-[0.75rem] text-ink-muted bg-canvas px-1.5 py-0.5 rounded border border-line">ESC</span>
+                </div>
+                <div class="max-h-[340px] overflow-y-auto p-2 flex flex-col gap-1">
+                    <div class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[10px] cursor-pointer transition-colors bg-surface-hover hover:bg-surface-hover" @onclick='() => ExecutePalette("dashboard")'>
+                        <div class="text-accent">
+                            <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                        </div>
+                        <div class="flex flex-col flex-1 leading-tight">
+                            <span class="text-[0.85rem] font-semibold text-ink">Open Recent Reviewers</span>
+                            <span class="text-[0.725rem] text-ink-muted">Browse your latest study materials</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[10px] cursor-pointer transition-colors hover:bg-surface-hover" @onclick='() => ExecutePalette("library")'>
+                        <div class="text-accent">
+                            <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
+                            </svg>
+                        </div>
+                        <div class="flex flex-col flex-1 leading-tight">
+                            <span class="text-[0.85rem] font-semibold text-ink">Open Library</span>
+                            <span class="text-[0.725rem] text-ink-muted">View organized folders and collections</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[10px] cursor-pointer transition-colors hover:bg-surface-hover" @onclick='() => ExecutePalette("trash")'>
+                        <div class="text-accent">
+                            <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                            </svg>
+                        </div>
+                        <div class="flex flex-col flex-1 leading-tight">
+                            <span class="text-[0.85rem] font-semibold text-ink">Open Trash</span>
+                            <span class="text-[0.725rem] text-ink-muted">Recover or permanently delete reviewers</span>
+                        </div>
+                    </div>
+
+                    @foreach (var doc in FilteredDocuments)
+                    {
+                        <div class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[10px] cursor-pointer transition-colors hover:bg-surface-hover" @onclick="() => SelectDocFromPalette(doc.Id)">
+                            <div class="text-accent">
+                                <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                </svg>
+                            </div>
+                            <div class="flex flex-col flex-1 leading-tight">
+                                <span class="text-[0.85rem] font-semibold text-ink truncate">@doc.Filename</span>
+                                <span class="text-[0.725rem] text-ink-muted">@doc.ChunkCount passages • @doc.UploadedAt.ToString("MMM d, yyyy")</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
 </div>
+
+@code {
+    private string searchQuery = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        AppState.OnChange += StateHasChanged;
+    }
+
+    private IEnumerable<DocumentItem> FilteredDocuments =>
+        string.IsNullOrWhiteSpace(searchQuery)
+            ? AppState.Documents.Take(4)
+            : AppState.Documents.Where(d => d.Filename.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+
+    private void ExecutePalette(string view)
+    {
+        AppState.SetView(view);
+        AppState.IsCommandPaletteOpen = false;
+    }
+
+    private void SelectDocFromPalette(int id)
+    {
+        AppState.SelectDocument(id);
+        AppState.IsCommandPaletteOpen = false;
+    }
+
+    public void Dispose()
+    {
+        AppState.OnChange -= StateHasChanged;
+    }
+}

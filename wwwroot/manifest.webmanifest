@@ -1,13 +1,18 @@
 {
-  "name": "BlazorApp1",
-  "short_name": "BlazorApp1",
+  "name": "Notepad AI",
+  "short_name": "Notepad AI",
   "id": "./",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#03173d",
+  "background_color": "#0b0f17",
+  "theme_color": "#0b0f17",
   "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "assets/logo/conext-logo-256.webp",
+      "type": "image/webp",
+      "sizes": "256x256"
+    },
     {
       "src": "icon-512.png",
       "type": "image/png",

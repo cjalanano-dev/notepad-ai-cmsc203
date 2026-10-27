@@ -17,4 +17,9 @@
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
 
+  <!-- Automatically rebuild Tailwind CSS before build if npx is available -->
+  <Target Name="BuildTailwind" BeforeTargets="BeforeBuild">
+    <Exec Command="cmd.exe /c &quot;npx -y tailwindcss@3.4.17 -i ./Styles/input.css -o ./wwwroot/css/app.css --minify&quot;" ContinueOnError="true" />
+  </Target>
+
 </Project>
