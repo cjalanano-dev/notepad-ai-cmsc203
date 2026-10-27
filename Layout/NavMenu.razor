@@ -2,24 +2,17 @@
 
 <aside class="h-full bg-surface border-r border-line flex flex-col transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] z-40 select-none @(AppState.IsSidebarCollapsed ? "w-[68px]" : "w-[270px]")">
     <!-- Header / Brand -->
-    <div class="p-4 border-b border-line flex items-center justify-between">
-        <div class="flex items-center gap-3 overflow-hidden">
-            <img src="assets/logo/conext-logo-256.webp" alt="Notepad AI" class="w-8 h-8 rounded-[9px] object-cover flex-shrink-0 shadow-[0_2px_10px_rgba(0,0,0,0.4)]" />
+    <div class="h-16 px-3.5 border-b border-line flex items-center justify-between overflow-hidden">
+        <div class="flex items-center gap-3 min-w-0 @(AppState.IsSidebarCollapsed ? "justify-center w-full cursor-pointer hover:opacity-80 transition-opacity" : "")" @onclick="() => { if (AppState.IsSidebarCollapsed) AppState.ToggleSidebar(); }" title="@(AppState.IsSidebarCollapsed ? "Expand sidebar" : "")">
+            <img src="assets/logo/conext-logo-256.webp" alt="Notepad AI" class="w-8 h-8 min-w-[32px] min-h-[32px] max-w-[32px] max-h-[32px] rounded-[9px] object-cover flex-shrink-0 shadow-[0_2px_10px_rgba(0,0,0,0.4)]" />
             @if (!AppState.IsSidebarCollapsed)
             {
-                <span class="text-[1.05rem] font-bold tracking-tight text-ink whitespace-nowrap">Notepad AI</span>
+                <span class="text-[1.05rem] font-bold tracking-tight text-ink whitespace-nowrap truncate">Notepad AI</span>
             }
         </div>
-        <button class="bg-transparent border-none text-ink-secondary hover:text-ink hover:bg-surface-raised p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer" @onclick="AppState.ToggleSidebar" title="@(AppState.IsSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar")">
+        <button class="bg-transparent border-none text-ink-secondary hover:text-ink hover:bg-surface-raised p-1.5 rounded-lg flex items-center justify-center transition-colors cursor-pointer flex-shrink-0 @(AppState.IsSidebarCollapsed ? "hidden" : "")" @onclick="AppState.ToggleSidebar" title="Collapse sidebar">
             <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                @if (AppState.IsSidebarCollapsed)
-                {
-                    <rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 9 3 3-3 3"/><path d="M15 3v18"/>
-                }
-                else
-                {
-                    <rect width="18" height="18" x="3" y="3" rx="2"/><path d="m14 9-3 3 3 3"/><path d="M9 3v18"/>
-                }
+                <rect width="18" height="18" x="3" y="3" rx="2"/><path d="m14 9-3 3 3 3"/><path d="M9 3v18"/>
             </svg>
         </button>
     </div>

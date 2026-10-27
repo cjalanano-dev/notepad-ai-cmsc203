@@ -146,13 +146,13 @@ else if (AppState.ActiveView == "workspace")
                 <div class="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
                     <div>
                         <div class="text-[0.72rem] font-bold uppercase tracking-wider text-ink-muted mb-2 flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="w-3.5 h-3.5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
                             </svg>
                             Synthesized Explanation
                         </div>
-                        <div class="bg-surface-raised border border-line rounded-xl p-4 text-[0.85rem] leading-relaxed text-ink-secondary">
-                            @AppState.SelectedDetail.Explanation
+                        <div class="bg-surface-raised border border-line rounded-xl p-4 text-[0.875rem] leading-relaxed text-ink-secondary chat-prose">
+                            @TextFormatter.ToFormattedHtml(AppState.SelectedDetail.Explanation)
                         </div>
                     </div>
 
@@ -196,19 +196,52 @@ else if (AppState.ActiveView == "workspace")
                 <div class="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
                     @foreach (var msg in AppState.CurrentMessages)
                     {
-                        <div class="flex flex-col max-w-[90%] @(msg.Role == "user" ? "self-end bg-[#252e42] text-white rounded-[14px_14px_2px_14px] px-4 py-3 text-[0.85rem] leading-relaxed" : "self-start bg-surface-raised border border-line text-ink rounded-[14px_14px_14px_2px] px-4 py-3.5 text-[0.85rem] leading-relaxed")">
-                            @msg.Content
-                            @if (msg.Citations.Any())
-                            {
-                                <div class="flex flex-wrap gap-1 mt-2">
-                                    @foreach (var c in msg.Citations)
-                                    {
-                                        <div class="inline-flex items-center gap-1 bg-surface-hover border border-line rounded-md px-2 py-0.5 text-[0.7rem] text-accent">
-                                            <span>Page @c.PageNumber</span>
-                                        </div>
-                                    }
-                                </div>
-                            }
+                        var isUser = msg.Role == "user";
+                        <div class="flex flex-col max-w-[92%] @(isUser ? "self-end" : "self-start")">
+                            <div class="text-[0.675rem] font-semibold tracking-wider uppercase mb-1 px-1 @(isUser ? "text-right text-ink-muted" : "text-accent")">
+                                @(isUser ? "You" : "Reviewer AI")
+                            </div>
+                            <div class="@(isUser ? "bg-[#252e42] text-white rounded-[16px_16px_4px_16px] px-4 py-3 text-[0.875rem] leading-relaxed shadow-sm" : "bg-surface-raised border border-line text-ink rounded-[16px_16px_16px_4px] px-4 py-3.5 text-[0.875rem] leading-relaxed shadow-sm")">
+                                @if (isUser)
+                                {
+                                    <div class="whitespace-pre-wrap">@msg.Content</div>
+                                }
+                                else
+                                {
+                                    <div class="chat-prose">
+                                        @TextFormatter.ToFormattedHtml(msg.Content)
+                                    </div>
+                                }
+
+                                @if (msg.Citations.Any())
+                                {
+                                    <div class="flex flex-wrap gap-1.5 mt-3 pt-2.5 border-t border-line/60">
+                                        @foreach (var c in msg.Citations)
+                                        {
+                                            <div class="inline-flex items-center gap-1 bg-surface-hover border border-line rounded-md px-2 py-0.5 text-[0.7rem] text-accent font-medium hover:border-accent/40 transition-colors" title="@c.Excerpt">
+                                                <svg class="w-3 h-3 text-accent/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                                </svg>
+                                                <span>Passage @c.PassageId • p. @c.PageNumber</span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (AppState.IsAiBusy)
+                    {
+                        <div class="flex flex-col max-w-[90%] self-start animate-fade-in">
+                            <div class="text-[0.675rem] font-semibold tracking-wider uppercase mb-1 px-1 text-accent">Reviewer AI</div>
+                            <div class="bg-surface-raised border border-line-strong rounded-[16px_16px_16px_4px] px-4 py-3 flex items-center gap-2.5 text-[0.825rem] text-ink-secondary">
+                                <svg class="animate-spin w-4 h-4 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                </svg>
+                                <span>@(string.IsNullOrWhiteSpace(AppState.AiBusyMessage) ? "Analyzing reviewer passages..." : AppState.AiBusyMessage)</span>
+                            </div>
                         </div>
                     }
                 </div>
@@ -319,8 +352,8 @@ else if (AppState.ActiveView == "quiz")
 
                 @if (hasSubmittedQuiz)
                 {
-                    <div class="bg-black/25 border-l-[3px] border-accent rounded-r-[10px] p-3 text-[0.785rem] leading-relaxed text-ink-secondary mt-4">
-                        <strong class="text-ink">Explanation:</strong> @item.Explanation
+                    <div class="bg-black/25 border-l-[3px] border-accent rounded-r-[10px] p-3 text-[0.825rem] leading-relaxed text-ink-secondary mt-4 chat-prose">
+                        <strong class="text-ink">Explanation:</strong> @TextFormatter.ToFormattedHtml(item.Explanation)
                     </div>
                 }
             </div>
@@ -403,8 +436,11 @@ else if (AppState.ActiveView == "essay")
 
             @if (!string.IsNullOrEmpty(AppState.SampleEssay.Feedback))
             {
-                <div class="bg-black/25 border-l-[3px] border-accent rounded-r-[10px] p-4 text-[0.825rem] leading-relaxed text-ink-secondary mt-5">
-                    <strong class="text-ink">AI Feedback:</strong> @AppState.SampleEssay.Feedback
+                <div class="bg-black/25 border-l-[3px] border-accent rounded-r-[10px] p-4 text-[0.875rem] leading-relaxed text-ink-secondary mt-5 chat-prose">
+                    <strong class="text-ink">AI Feedback:</strong>
+                    <div class="mt-2">
+                        @TextFormatter.ToFormattedHtml(AppState.SampleEssay.Feedback)
+                    </div>
                 </div>
             }
         </div>
