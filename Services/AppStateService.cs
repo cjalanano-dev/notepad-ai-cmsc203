@@ -122,6 +122,17 @@ public class AppStateService
         NotifyStateChanged();
     }
 
+    public void UpdateNodePosition(int nodeId, double x, double y)
+    {
+        var node = CurrentNodes.FirstOrDefault(n => n.Id == nodeId);
+        if (node != null)
+        {
+            node.X = x;
+            node.Y = y;
+            NotifyStateChanged();
+        }
+    }
+
     public async Task AddDocumentWithContentAsync(string filename, string content)
     {
         var id = Documents.Count > 0 ? Documents.Max(d => d.Id) + 1 : 1;

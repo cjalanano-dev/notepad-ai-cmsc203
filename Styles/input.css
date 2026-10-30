@@ -84,30 +84,73 @@ html, body {
   background: var(--ink-muted);
 }
 
-/* Radial background for canvas */
+/* Radial and dotted grid background for mind map canvas */
 .canvas-bg {
-  background: radial-gradient(circle at 50% 50%, #161c27 0%, var(--canvas) 100%);
+  background-color: var(--canvas);
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.04) 0%, transparent 80%),
+    radial-gradient(rgba(148, 163, 184, 0.12) 1.2px, transparent 1.2px);
+  background-size: 100% 100%, 28px 28px;
+  background-position: 0 0, 0 0;
+}
+
+[data-theme="light"] .canvas-bg {
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(2, 132, 199, 0.03) 0%, transparent 80%),
+    radial-gradient(rgba(100, 116, 139, 0.15) 1.2px, transparent 1.2px);
+  background-size: 100% 100%, 28px 28px;
 }
 
 .graph-canvas {
   width: 100%;
   height: 100%;
   cursor: grab;
+  touch-action: none;
+  user-select: none;
 }
 .graph-canvas:active {
   cursor: grabbing;
 }
 .graph-node {
-  cursor: pointer;
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: grab;
+  transition: filter 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.graph-node:active {
+  cursor: grabbing;
 }
 .graph-node:hover {
-  filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.35));
+  filter: drop-shadow(0 4px 18px rgba(56, 189, 248, 0.35));
 }
 .graph-node.selected rect {
   stroke: var(--accent);
   stroke-width: 2.5;
-  filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.55));
+  filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.55));
+}
+
+/* NotebookLM & ChatGPT styled UI pills and subtle animations */
+.glass-pill {
+  background: rgba(17, 21, 31, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+[data-theme="light"] .glass-pill {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.06);
+}
+
+.interactive-btn {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.interactive-btn:hover {
+  transform: translateY(-1px);
+}
+.interactive-btn:active {
+  transform: scale(0.97);
 }
 
 @keyframes fadeIn {

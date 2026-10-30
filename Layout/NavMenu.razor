@@ -18,20 +18,20 @@
     </div>
 
     <!-- Quick Search Command Button -->
-    <button class="mx-3.5 my-3 bg-surface-raised border border-line hover:border-line-strong hover:bg-surface-hover hover:text-ink rounded-[10px] px-3 py-2.5 text-ink-secondary flex items-center gap-2.5 cursor-pointer text-[0.825rem] transition-all" @onclick="() => AppState.IsCommandPaletteOpen = true" title="Search reviewers (Ctrl+K)">
+    <button class="mx-3.5 my-3 bg-surface-raised/80 border border-line hover:border-line-strong hover:bg-surface-hover hover:text-ink rounded-xl px-3 py-2.5 text-ink-secondary flex items-center gap-2.5 cursor-pointer text-[0.825rem] transition-all interactive-btn" @onclick="() => AppState.IsCommandPaletteOpen = true" title="Search reviewers (Ctrl+K)">
         <svg class="w-[15px] h-[15px] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
         </svg>
         @if (!AppState.IsSidebarCollapsed)
         {
             <span>Search</span>
-            <kbd class="ml-auto text-[0.675rem] bg-canvas border border-line px-1.5 py-0.5 rounded-[5px] text-ink-muted">Ctrl+K</kbd>
+            <kbd class="ml-auto text-[0.675rem] bg-canvas border border-line px-1.5 py-0.5 rounded-md text-ink-muted">Ctrl+K</kbd>
         }
     </button>
 
     <!-- Main Navigation Section -->
-    <div class="px-2.5 py-2 flex flex-col gap-[3px] border-b border-line">
-        <button class="flex items-center gap-3 px-3 py-2 rounded-[10px] border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "dashboard" ? "bg-surface-hover text-white font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.25)]" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("dashboard")'>
+    <div class="px-2.5 py-2 flex flex-col gap-[4px] border-b border-line">
+        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "dashboard" ? "bg-surface-hover text-white font-semibold shadow-sm" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("dashboard")'>
             <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
             </svg>
@@ -41,7 +41,7 @@
             }
         </button>
 
-        <button class="flex items-center gap-3 px-3 py-2 rounded-[10px] border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "library" ? "bg-surface-hover text-white font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.25)]" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("library")'>
+        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "library" ? "bg-surface-hover text-white font-semibold shadow-sm" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("library")'>
             <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
             </svg>
@@ -51,7 +51,7 @@
             }
         </button>
 
-        <button class="flex items-center gap-3 px-3 py-2 rounded-[10px] border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "trash" ? "bg-surface-hover text-white font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.25)]" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("trash")'>
+        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "trash" ? "bg-surface-hover text-white font-semibold shadow-sm" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("trash")'>
             <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
             </svg>
@@ -62,7 +62,7 @@
             }
         </button>
 
-        <button class="flex items-center gap-3 px-3 py-2 rounded-[10px] border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "settings" ? "bg-surface-hover text-white font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.25)]" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("settings")'>
+        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "settings" ? "bg-surface-hover text-white font-semibold shadow-sm" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("settings")'>
             <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
                 <circle cx="12" cy="12" r="3"/>
@@ -75,12 +75,12 @@
     </div>
 
     <!-- Study Tools Section -->
-    <div class="px-2.5 py-2 flex flex-col gap-[3px] border-b border-line">
+    <div class="px-2.5 py-2 flex flex-col gap-[4px] border-b border-line">
         @if (!AppState.IsSidebarCollapsed)
         {
             <div class="text-[0.68rem] font-bold uppercase tracking-wider text-ink-muted px-3 pt-2 pb-1">Study Tools</div>
         }
-        <button class="flex items-center gap-3 px-3 py-2 rounded-[10px] border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "quiz" ? "bg-surface-hover text-white font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.25)]" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("quiz")'>
+        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "quiz" ? "bg-surface-hover text-white font-semibold shadow-sm" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("quiz")'>
             <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/><path d="9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
             </svg>
@@ -90,7 +90,7 @@
             }
         </button>
 
-        <button class="flex items-center gap-3 px-3 py-2 rounded-[10px] border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "flashcards" ? "bg-surface-hover text-white font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.25)]" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("flashcards")'>
+        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "flashcards" ? "bg-surface-hover text-white font-semibold shadow-sm" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("flashcards")'>
             <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.5-9.17 4.16a2 2 0 0 1-1.66 0L2 12.5"/><path d="m22 17.5-9.17 4.16a2 2 0 0 1-1.66 0L2 17.5"/>
             </svg>
@@ -100,7 +100,7 @@
             }
         </button>
 
-        <button class="flex items-center gap-3 px-3 py-2 rounded-[10px] border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "essay" ? "bg-surface-hover text-white font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.25)]" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("essay")'>
+        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "justify-center px-0" : "") @(AppState.ActiveView == "essay" ? "bg-surface-hover text-white font-semibold shadow-sm" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("essay")'>
             <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
             </svg>
