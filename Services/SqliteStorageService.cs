@@ -129,6 +129,8 @@ public class SqliteStorageService
         await ExecuteAsync("DELETE FROM concept_nodes WHERE document_id = ?;", docId);
         await ExecuteAsync("DELETE FROM concept_edges WHERE document_id = ?;", docId);
         await ExecuteAsync("DELETE FROM chat_messages WHERE document_id = ?;", docId);
+        await ExecuteAsync("DELETE FROM quizzes WHERE document_id = ?;", docId);
+        await ExecuteAsync("DELETE FROM flashcards WHERE document_id = ?;", docId);
     }
 
     public async Task<List<SourceChunkItem>> GetPassagesByDocumentIdAsync(int docId)
@@ -250,6 +252,65 @@ public class SqliteStorageService
         }).ToList();
     }
 
+    public async Task SaveQuizzesAsync(int docId, List<QuizItem> items)
+    {
+        await ExecuteAsync("DELETE FROM quizzes WHERE document_id = ?;", docId);
+        foreach (var q in items)
+        {
+            var optJson = JsonSerializer.Serialize(q.Options);
+            await ExecuteAsync(
+                "INSERT INTO quizzes (document_id, question, options_json, answer_index, explanation, citation) VALUES (?, ?, ?, ?, ?, ?);",
+                docId, q.Question, optJson, q.AnswerIndex, q.Explanation, q.Citation
+            );
+        }
+    }
+
+    public async Task<List<QuizItem>> GetQuizzesAsync(int docId)
+    {
+        var raw = await QueryAsync<SqlQuizRow>(
+            "SELECT id, question, options_json as OptionsJson, answer_index as AnswerIndex, explanation, citation FROM quizzes WHERE document_id = ? ORDER BY id ASC;",
+            docId
+        );
+
+        return raw.Select(r => new QuizItem
+        {
+            Question = r.Question,
+            Options = string.IsNullOrWhiteSpace(r.OptionsJson)
+                ? new List<string>()
+                : JsonSerializer.Deserialize<List<string>>(r.OptionsJson) ?? new List<string>(),
+            AnswerIndex = r.AnswerIndex,
+            Explanation = r.Explanation ?? "",
+            Citation = r.Citation ?? ""
+        }).ToList();
+    }
+
+    public async Task SaveFlashcardsAsync(int docId, List<FlashcardItem> items)
+    {
+        await ExecuteAsync("DELETE FROM flashcards WHERE document_id = ?;", docId);
+        foreach (var f in items)
+        {
+            await ExecuteAsync(
+                "INSERT INTO flashcards (document_id, front, back, citation) VALUES (?, ?, ?, ?);",
+                docId, f.Front, f.Back, f.Citation
+            );
+        }
+    }
+
+    public async Task<List<FlashcardItem>> GetFlashcardsAsync(int docId)
+    {
+        var raw = await QueryAsync<SqlFlashcardRow>(
+            "SELECT id, front, back, citation FROM flashcards WHERE document_id = ? ORDER BY id ASC;",
+            docId
+        );
+
+        return raw.Select(r => new FlashcardItem
+        {
+            Front = r.Front,
+            Back = r.Back,
+            Citation = r.Citation ?? ""
+        }).ToList();
+    }
+
     private class SqlDocumentRow
     {
         public int Id { get; set; }
@@ -296,6 +357,24 @@ public class SqliteStorageService
         public string Content { get; set; } = "";
         public string Timestamp { get; set; } = "";
         public string? CitationsJson { get; set; }
+    }
+
+    private class SqlQuizRow
+    {
+        public int Id { get; set; }
+        public string Question { get; set; } = "";
+        public string? OptionsJson { get; set; }
+        public int AnswerIndex { get; set; }
+        public string? Explanation { get; set; }
+        public string? Citation { get; set; }
+    }
+
+    private class SqlFlashcardRow
+    {
+        public int Id { get; set; }
+        public string Front { get; set; } = "";
+        public string Back { get; set; } = "";
+        public string? Citation { get; set; }
     }
 
     private class SqlIdRow

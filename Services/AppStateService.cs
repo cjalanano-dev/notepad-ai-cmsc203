@@ -73,7 +73,7 @@ public class AppStateService
                 Documents = savedDocs;
                 SelectedDocument = Documents.First();
 
-                // Load SQLite map and chat for first document
+                // Load SQLite map, chat, quizzes, and flashcards for first document
                 var (nodes, edges) = await _sqliteService.GetConceptMapAsync(SelectedDocument.Id);
                 if (nodes.Count > 0)
                 {
@@ -81,6 +81,9 @@ public class AppStateService
                     CurrentEdges = edges;
                     SelectNode(nodes[0].Id);
                 }
+
+                SampleQuiz = await _sqliteService.GetQuizzesAsync(SelectedDocument.Id);
+                SampleFlashcards = await _sqliteService.GetFlashcardsAsync(SelectedDocument.Id);
 
                 var msgs = await _sqliteService.GetChatMessagesAsync(SelectedDocument.Id);
                 if (msgs.Count > 0)
@@ -162,6 +165,10 @@ public class AppStateService
             {
                 LoadChatForDocument(SelectedDocument);
             }
+
+            // Load saved quizzes and flashcards for this document
+            SampleQuiz = await _sqliteService.GetQuizzesAsync(SelectedDocument.Id);
+            SampleFlashcards = await _sqliteService.GetFlashcardsAsync(SelectedDocument.Id);
         }
         ActiveView = "workspace";
         NotifyStateChanged();
@@ -380,6 +387,62 @@ public class AppStateService
                 AiBusyMessage = string.Empty;
                 NotifyStateChanged();
             }
+        }
+    }
+
+    public async Task GenerateQuizForSelectedDocumentAsync()
+    {
+        if (SelectedDocument == null || SelectedDocument.Passages.Count == 0) return;
+        try
+        {
+            IsAiBusy = true;
+            AiBusyMessage = $"Generating grounded quiz questions with {_ollamaService.DefaultModel}...";
+            NotifyStateChanged();
+
+            var quiz = await _studyService.GenerateQuizAsync(SelectedDocument.Filename, SelectedDocument.Passages);
+            if (quiz.Count > 0)
+            {
+                SampleQuiz = quiz;
+                await _sqliteService.SaveQuizzesAsync(SelectedDocument.Id, quiz);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GenerateQuiz Error] {ex.Message}");
+        }
+        finally
+        {
+            IsAiBusy = false;
+            AiBusyMessage = string.Empty;
+            NotifyStateChanged();
+        }
+    }
+
+    public async Task GenerateFlashcardsForSelectedDocumentAsync()
+    {
+        if (SelectedDocument == null || SelectedDocument.Passages.Count == 0) return;
+        try
+        {
+            IsAiBusy = true;
+            AiBusyMessage = $"Generating concept flashcards with {_ollamaService.DefaultModel}...";
+            NotifyStateChanged();
+
+            var cards = await _studyService.GenerateFlashcardsAsync(SelectedDocument.Filename, SelectedDocument.Passages);
+            if (cards.Count > 0)
+            {
+                SampleFlashcards = cards;
+                await _sqliteService.SaveFlashcardsAsync(SelectedDocument.Id, cards);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GenerateFlashcards Error] {ex.Message}");
+        }
+        finally
+        {
+            IsAiBusy = false;
+            AiBusyMessage = string.Empty;
+            NotifyStateChanged();
         }
     }
 

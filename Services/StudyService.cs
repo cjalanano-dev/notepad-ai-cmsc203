@@ -34,7 +34,7 @@ public class StudyService
         var systemPrompt =
             "You are an educational quiz creator. Generate a multiple-choice quiz based strictly on the provided reviewer passages.\n" +
             "RULES:\n" +
-            "1. Generate 3 to 6 high-quality multiple choice questions.\n" +
+            "1. Generate 3 to 6 high-quality multiple choice questions testing key concepts.\n" +
             "2. Each question MUST have exactly 4 options.\n" +
             "3. 'answer_index' must be 0, 1, 2, or 3 corresponding to the correct option in 'options'.\n" +
             "4. Include a concise explanation and valid 'passage_ids' citing the exact supporting passages.\n" +
@@ -43,33 +43,40 @@ public class StudyService
 
         var userPrompt = $"Reviewer: {docFilename}\n\nReviewer passages:\n{passagesText}";
 
-        var raw = await _ollama.GenerateStructuredAsync<RawQuizOutput>(systemPrompt, userPrompt, model, ct);
-        if (raw == null || raw.Items == null || raw.Items.Count == 0)
+        try
         {
-            throw new InvalidOperationException("Failed to generate quiz questions.");
-        }
-
-        var result = new List<QuizItem>();
-        foreach (var item in raw.Items)
-        {
-            if (item.Options.Count >= 2)
+            var raw = await _ollama.GenerateStructuredAsync<RawQuizOutput>(systemPrompt, userPrompt, model, ct);
+            if (raw != null && raw.Items != null && raw.Items.Count > 0)
             {
-                var citation = item.PassageIds.Count > 0
-                    ? $"p. {passages.FirstOrDefault(p => p.Id == item.PassageIds[0])?.PageNumber ?? 1}"
-                    : "p. 1";
-
-                result.Add(new QuizItem
+                var result = new List<QuizItem>();
+                foreach (var item in raw.Items)
                 {
-                    Question = item.Question,
-                    Options = item.Options,
-                    AnswerIndex = Math.Clamp(item.AnswerIndex, 0, item.Options.Count - 1),
-                    Explanation = item.Explanation,
-                    Citation = citation
-                });
+                    if (item.Options.Count >= 2)
+                    {
+                        var citation = item.PassageIds.Count > 0
+                            ? $"p. {passages.FirstOrDefault(p => p.Id == item.PassageIds[0])?.PageNumber ?? 1}"
+                            : "p. 1";
+
+                        result.Add(new QuizItem
+                        {
+                            Question = item.Question,
+                            Options = item.Options,
+                            AnswerIndex = Math.Clamp(item.AnswerIndex, 0, item.Options.Count - 1),
+                            Explanation = item.Explanation,
+                            Citation = citation
+                        });
+                    }
+                }
+                if (result.Count > 0) return result;
             }
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Ollama Quiz Gen Error] {ex.Message}. Falling back to heuristic quiz generation.");
+        }
 
-        return result;
+        // Reliable fallback if LLM offline or timed out
+        return GenerateFallbackQuiz(docFilename, passages);
     }
 
     public async Task<List<FlashcardItem>> GenerateFlashcardsAsync(
@@ -86,7 +93,7 @@ public class StudyService
         var systemPrompt =
             "You are a study flashcard generator. Create a set of flashcards strictly grounded in the supplied reviewer passages.\n" +
             "RULES:\n" +
-            "1. Create 4 to 8 flashcards.\n" +
+            "1. Create 4 to 8 flashcards covering core concepts and definitions.\n" +
             "2. 'front' should be a focused concept question or prompt.\n" +
             "3. 'back' should be a clear, accurate explanation or answer from the text.\n" +
             "4. 'passage_ids' should contain the IDs of the supporting passages.\n" +
@@ -95,28 +102,85 @@ public class StudyService
 
         var userPrompt = $"Reviewer: {docFilename}\n\nReviewer passages:\n{passagesText}";
 
-        var raw = await _ollama.GenerateStructuredAsync<RawFlashcardOutput>(systemPrompt, userPrompt, model, ct);
-        if (raw == null || raw.Items == null || raw.Items.Count == 0)
+        try
         {
-            throw new InvalidOperationException("Failed to generate flashcards.");
+            var raw = await _ollama.GenerateStructuredAsync<RawFlashcardOutput>(systemPrompt, userPrompt, model, ct);
+            if (raw != null && raw.Items != null && raw.Items.Count > 0)
+            {
+                var result = new List<FlashcardItem>();
+                foreach (var item in raw.Items)
+                {
+                    var citation = item.PassageIds.Count > 0
+                        ? $"p. {passages.FirstOrDefault(p => p.Id == item.PassageIds[0])?.PageNumber ?? 1}"
+                        : "p. 1";
+
+                    result.Add(new FlashcardItem
+                    {
+                        Front = item.Front,
+                        Back = item.Back,
+                        Citation = citation
+                    });
+                }
+                if (result.Count > 0) return result;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Ollama Flashcard Gen Error] {ex.Message}. Falling back to heuristic flashcards.");
         }
 
-        var result = new List<FlashcardItem>();
-        foreach (var item in raw.Items)
-        {
-            var citation = item.PassageIds.Count > 0
-                ? $"p. {passages.FirstOrDefault(p => p.Id == item.PassageIds[0])?.PageNumber ?? 1}"
-                : "p. 1";
+        // Reliable fallback if LLM offline or timed out
+        return GenerateFallbackFlashcards(docFilename, passages);
+    }
 
-            result.Add(new FlashcardItem
+    private List<QuizItem> GenerateFallbackQuiz(string docFilename, List<SourceChunkItem> passages)
+    {
+        var items = new List<QuizItem>();
+        for (int i = 0; i < Math.Min(4, passages.Count); i++)
+        {
+            var chunk = passages[i];
+            var lines = chunk.Content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var firstLine = lines.FirstOrDefault() ?? "Document Concept";
+            var snippet = chunk.Content.Length > 120 ? chunk.Content.Substring(0, 120) + "..." : chunk.Content;
+
+            items.Add(new QuizItem
             {
-                Front = item.Front,
-                Back = item.Back,
-                Citation = citation
+                Question = $"According to page {chunk.PageNumber} in {docFilename}, what is the main focus of this section?",
+                Options = new List<string>
+                {
+                    snippet,
+                    "An unrelated secondary topic not covered in this section",
+                    "A historical overview irrelevant to the central subject",
+                    "A summary of future administrative procedures"
+                },
+                AnswerIndex = 0,
+                Explanation = $"As detailed on page {chunk.PageNumber}, this section focuses on: {firstLine.Trim()}.",
+                Citation = $"p. {chunk.PageNumber}"
             });
         }
+        return items;
+    }
 
-        return result;
+    private List<FlashcardItem> GenerateFallbackFlashcards(string docFilename, List<SourceChunkItem> passages)
+    {
+        var items = new List<FlashcardItem>();
+        for (int i = 0; i < Math.Min(6, passages.Count); i++)
+        {
+            var chunk = passages[i];
+            var lines = chunk.Content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var title = lines.FirstOrDefault()?.Trim().TrimStart('#', '-', '*', ' ') ?? $"Concept Section {i + 1}";
+            if (title.Length > 40) title = title.Substring(0, 40) + "...";
+
+            var explanation = chunk.Content.Length > 200 ? chunk.Content.Substring(0, 200) + "..." : chunk.Content;
+
+            items.Add(new FlashcardItem
+            {
+                Front = $"What are the key points regarding '{title}'?",
+                Back = explanation,
+                Citation = $"p. {chunk.PageNumber}"
+            });
+        }
+        return items;
     }
 
     public async Task<EssayTask> GenerateEssayTaskAsync(
