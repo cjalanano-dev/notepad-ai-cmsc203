@@ -463,91 +463,259 @@ else if (AppState.ActiveView == "quiz")
 {
     <!-- QUIZ STUDY MODE -->
     <div class="flex-1 overflow-y-auto px-14 py-10 max-w-[860px] mx-auto w-full">
-        <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-lg px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer transition-all mb-6" @onclick='() => AppState.SetView("dashboard")'>
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-            <span>Back to Dashboard</span>
-        </button>
+        <div class="flex items-center justify-between mb-6">
+            <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-lg px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer transition-all" @onclick='() => AppState.SetView("workspace")'>
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                <span>Back to Workspace</span>
+            </button>
 
-        <div class="mb-8">
-            <h1 class="text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Interactive Quiz</h1>
-            <p class="text-ink-secondary text-[0.9rem]">Assessing comprehension from verified source citations.</p>
+            @if (AppState.SelectedDocument != null)
+            {
+                <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-3.5 py-1.5 text-[0.8rem] font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm disabled:opacity-50" @onclick="GenerateQuiz" disabled="@AppState.IsAiBusy">
+                    @if (AppState.IsAiBusy)
+                    {
+                        <svg class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle class="opacity-25" cx="12" cy="12" r="10"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <span>Generating...</span>
+                    }
+                    else
+                    {
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                        </svg>
+                        <span>Generate New Quiz</span>
+                    }
+                </button>
+            }
         </div>
 
-        @for (int i = 0; i < AppState.SampleQuiz.Count; i++)
+        <div class="mb-8">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-2 h-2 rounded-full bg-accent"></span>
+                <span class="text-[0.72rem] font-bold uppercase tracking-wider text-accent font-mono">
+                    @(AppState.SelectedDocument?.Filename ?? "Document Quiz")
+                </span>
+            </div>
+            <h1 class="text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Interactive Knowledge Assessment</h1>
+            <p class="text-ink-secondary text-[0.9rem]">Multiple-choice quiz strictly grounded in the document text with direct citations.</p>
+        </div>
+
+        @if (AppState.SampleQuiz == null || AppState.SampleQuiz.Count == 0)
         {
-            var qIndex = i;
-            var item = AppState.SampleQuiz[qIndex];
-            var selectedAns = quizSelections.ContainsKey(qIndex) ? quizSelections[qIndex] : (int?)null;
-
-            <div class="bg-surface border border-line rounded-[18px] p-8 shadow-card mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <span class="text-[0.75rem] font-bold text-accent uppercase tracking-wider">Question @(qIndex + 1)</span>
-                    <span class="text-[0.75rem] text-ink-muted">Citation: @item.Citation</span>
+            <div class="border border-line rounded-2xl bg-surface p-12 text-center flex flex-col items-center justify-center">
+                <div class="w-12 h-12 rounded-xl bg-surface-raised border border-line flex items-center justify-center text-accent mb-4">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><path d="9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
+                    </svg>
                 </div>
-                <h3 class="text-[1.1rem] font-semibold text-ink mb-5 leading-snug">@item.Question</h3>
+                <h3 class="text-[1.1rem] font-semibold text-ink mb-2">No Quiz Generated Yet</h3>
+                <p class="text-ink-secondary text-[0.85rem] max-w-md mb-6 leading-relaxed">
+                    Generate an AI quiz from the passages of <strong class="text-ink">@(AppState.SelectedDocument?.Filename ?? "this document")</strong> to test your understanding of key concepts.
+                </p>
+                <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-5 py-2.5 text-[0.875rem] font-semibold cursor-pointer transition-colors flex items-center gap-2" @onclick="GenerateQuiz" disabled="@(AppState.SelectedDocument == null || AppState.IsAiBusy)">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    <span>Generate Quiz from Document</span>
+                </button>
+            </div>
+        }
+        else
+        {
+            @for (int i = 0; i < AppState.SampleQuiz.Count; i++)
+            {
+                var qIndex = i;
+                var item = AppState.SampleQuiz[qIndex];
+                var selectedAns = quizSelections.ContainsKey(qIndex) ? quizSelections[qIndex] : (int?)null;
 
-                @for (int o = 0; o < item.Options.Count; o++)
+                <div class="bg-surface border border-line rounded-[18px] p-8 shadow-card mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-[0.75rem] font-bold text-accent uppercase tracking-wider font-mono">Question @(qIndex + 1) of @AppState.SampleQuiz.Count</span>
+                        <span class="text-[0.75rem] text-ink-muted bg-surface-raised px-2.5 py-1 rounded-md border border-line font-mono">Citation: @item.Citation</span>
+                    </div>
+                    <h3 class="text-[1.1rem] font-semibold text-ink mb-5 leading-snug">@item.Question</h3>
+
+                    @for (int o = 0; o < item.Options.Count; o++)
+                    {
+                        var optIndex = o;
+                        var isSelected = selectedAns == optIndex;
+                        var isCorrect = hasSubmittedQuiz && optIndex == item.AnswerIndex;
+                        var isWrong = hasSubmittedQuiz && isSelected && optIndex != item.AnswerIndex;
+
+                        var buttonClass = "border-line bg-surface-raised text-ink hover:border-accent hover:bg-surface-hover";
+                        if (isCorrect)
+                        {
+                            buttonClass = "border-emerald-500/80 bg-emerald-500/15 text-emerald-400 font-semibold";
+                        }
+                        else if (isWrong)
+                        {
+                            buttonClass = "border-rose-500/80 bg-rose-500/15 text-rose-400 font-semibold";
+                        }
+                        else if (isSelected)
+                        {
+                            buttonClass = "border-accent bg-accent/15 text-accent font-semibold";
+                        }
+
+                        <button class="flex items-center w-full px-4 py-3.5 rounded-xl border text-[0.875rem] text-left cursor-pointer mb-2.5 transition-all @buttonClass" @onclick="() => quizSelections[qIndex] = optIndex">
+                            <span class="w-6 font-bold text-ink-muted">@((char)('A' + optIndex)).</span>
+                            <span class="flex-1">@item.Options[optIndex]</span>
+                            @if (hasSubmittedQuiz && isCorrect)
+                            {
+                                <svg class="w-4 h-4 text-emerald-400 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            }
+                            else if (hasSubmittedQuiz && isWrong)
+                            {
+                                <svg class="w-4 h-4 text-rose-400 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="6"/>
+                                </svg>
+                            }
+                        </button>
+                    }
+
+                    @if (hasSubmittedQuiz)
+                    {
+                        <div class="bg-black/30 border-l-[3px] border-accent rounded-r-[10px] p-3.5 text-[0.825rem] leading-relaxed text-ink-secondary mt-4 chat-prose">
+                            <strong class="text-ink">Explanation:</strong> @TextFormatter.ToFormattedHtml(item.Explanation)
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="flex items-center gap-4 mt-6">
+                @if (!hasSubmittedQuiz)
                 {
-                    var optIndex = o;
-                    var isSelected = selectedAns == optIndex;
-                    var isCorrect = hasSubmittedQuiz && optIndex == item.AnswerIndex;
-
-                    <button class="flex items-center w-full px-4 py-3.5 rounded-xl border text-[0.875rem] text-left cursor-pointer mb-2.5 transition-all @(isSelected ? "border-accent bg-accent-soft text-accent font-semibold" : "border-line bg-surface-raised text-ink hover:border-accent hover:bg-surface-hover") @(isCorrect ? "border-success bg-success-soft text-success" : "")" @onclick="() => quizSelections[qIndex] = optIndex">
-                        <span class="w-6 font-bold text-ink-muted">@((char)('A' + optIndex)).</span>
-                        <span>@item.Options[optIndex]</span>
+                    <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-6 py-2.5 text-[0.95rem] font-semibold cursor-pointer transition-colors shadow-sm" @onclick="() => hasSubmittedQuiz = true">
+                        Submit Assessment
                     </button>
                 }
-
-                @if (hasSubmittedQuiz)
+                else
                 {
-                    <div class="bg-black/25 border-l-[3px] border-accent rounded-r-[10px] p-3 text-[0.825rem] leading-relaxed text-ink-secondary mt-4 chat-prose">
-                        <strong class="text-ink">Explanation:</strong> @TextFormatter.ToFormattedHtml(item.Explanation)
+                    var correctCount = AppState.SampleQuiz.Count(q => quizSelections.ContainsKey(AppState.SampleQuiz.IndexOf(q)) && quizSelections[AppState.SampleQuiz.IndexOf(q)] == q.AnswerIndex);
+                    <div class="flex items-center gap-4">
+                        <span class="text-[1.05rem] font-bold text-ink bg-surface-raised border border-line px-4 py-2 rounded-lg">
+                            Score: @correctCount / @AppState.SampleQuiz.Count (@((int)((double)correctCount / AppState.SampleQuiz.Count * 100))%)
+                        </span>
+                        <button class="bg-surface-raised border border-line text-ink hover:bg-surface-hover rounded-lg px-4 py-2 text-[0.875rem] font-medium cursor-pointer transition-colors" @onclick="() => { hasSubmittedQuiz = false; quizSelections.Clear(); }">
+                            Retake Quiz
+                        </button>
                     </div>
                 }
             </div>
         }
-
-        <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-6 py-2.5 text-[0.95rem] font-semibold cursor-pointer transition-colors mt-4" @onclick="() => hasSubmittedQuiz = true">
-            Submit Assessment
-        </button>
     </div>
 }
 else if (AppState.ActiveView == "flashcards")
 {
     <!-- FLASHCARDS STUDY MODE -->
     <div class="flex-1 overflow-y-auto px-14 py-10 max-w-[860px] mx-auto w-full">
-        <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-lg px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer transition-all mb-6" @onclick='() => AppState.SetView("dashboard")'>
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-            <span>Back to Dashboard</span>
-        </button>
+        <div class="flex items-center justify-between mb-6">
+            <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-lg px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer transition-all" @onclick='() => AppState.SetView("workspace")'>
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                <span>Back to Workspace</span>
+            </button>
 
-        <div class="mb-8">
-            <h1 class="text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Concept Flashcards</h1>
-            <p class="text-ink-secondary text-[0.9rem]">Card @(currentCardIndex + 1) of @AppState.SampleFlashcards.Count • Click card to flip</p>
+            @if (AppState.SelectedDocument != null)
+            {
+                <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-3.5 py-1.5 text-[0.8rem] font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm disabled:opacity-50" @onclick="GenerateCards" disabled="@AppState.IsAiBusy">
+                    @if (AppState.IsAiBusy)
+                    {
+                        <svg class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle class="opacity-25" cx="12" cy="12" r="10"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <span>Generating...</span>
+                    }
+                    else
+                    {
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                        </svg>
+                        <span>Generate New Cards</span>
+                    }
+                </button>
+            }
         </div>
 
-        @if (AppState.SampleFlashcards.Any())
+        <div class="mb-8">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="w-2 h-2 rounded-full bg-accent"></span>
+                <span class="text-[0.72rem] font-bold uppercase tracking-wider text-accent font-mono">
+                    @(AppState.SelectedDocument?.Filename ?? "Document Flashcards")
+                </span>
+            </div>
+            <h1 class="text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Interactive Concept Flashcards</h1>
+            <p class="text-ink-secondary text-[0.9rem]">
+                @(AppState.SampleFlashcards.Count > 0 ? $"Card {currentCardIndex + 1} of {AppState.SampleFlashcards.Count} • Click anywhere to flip" : "Review key definitions and core topics.")
+            </p>
+        </div>
+
+        @if (AppState.SampleFlashcards == null || AppState.SampleFlashcards.Count == 0)
         {
-            var card = AppState.SampleFlashcards[currentCardIndex];
-            <div class="min-h-[240px] bg-surface-raised border border-line hover:border-accent-border hover:-translate-y-0.5 rounded-2xl flex flex-col items-center justify-center text-center p-10 cursor-pointer transition-all select-none shadow-card" @onclick="() => isCardFlipped = !isCardFlipped">
-                <div class="text-[0.75rem] font-bold uppercase tracking-wider text-accent mb-4">
-                    @(isCardFlipped ? "Answer / Explanation" : "Concept Prompt")
+            <div class="border border-line rounded-2xl bg-surface p-12 text-center flex flex-col items-center justify-center">
+                <div class="w-12 h-12 rounded-xl bg-surface-raised border border-line flex items-center justify-center text-accent mb-4">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
+                    </svg>
                 </div>
-                <div class="text-[1.25rem] font-semibold text-ink max-w-[550px] leading-relaxed">
+                <h3 class="text-[1.1rem] font-semibold text-ink mb-2">No Flashcards Available</h3>
+                <p class="text-ink-secondary text-[0.85rem] max-w-md mb-6 leading-relaxed">
+                    Generate an interactive deck from <strong class="text-ink">@(AppState.SelectedDocument?.Filename ?? "this document")</strong> to memorize key terms and concepts.
+                </p>
+                <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-5 py-2.5 text-[0.875rem] font-semibold cursor-pointer transition-colors flex items-center gap-2" @onclick="GenerateCards" disabled="@(AppState.SelectedDocument == null || AppState.IsAiBusy)">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    <span>Generate Flashcards from Document</span>
+                </button>
+            </div>
+        }
+        else
+        {
+            if (currentCardIndex >= AppState.SampleFlashcards.Count) currentCardIndex = 0;
+            var card = AppState.SampleFlashcards[currentCardIndex];
+
+            <div class="min-h-[260px] bg-surface-raised border border-line hover:border-accent hover:-translate-y-0.5 rounded-2xl flex flex-col items-center justify-center text-center p-10 cursor-pointer transition-all select-none shadow-card relative group" @onclick="() => isCardFlipped = !isCardFlipped">
+                <div class="absolute top-4 right-4 flex items-center gap-2">
+                    <span class="text-[0.72rem] font-mono text-ink-muted bg-surface px-2.5 py-1 rounded-md border border-line">
+                        Citation: @card.Citation
+                    </span>
+                    <span class="text-[0.72rem] text-accent font-medium bg-accent/10 border border-accent/20 px-2 py-0.5 rounded">
+                        @(isCardFlipped ? "Answer" : "Question")
+                    </span>
+                </div>
+
+                <div class="text-[0.75rem] font-bold uppercase tracking-wider text-accent mb-4">
+                    @(isCardFlipped ? "Explanation / Verified Answer" : "Concept Prompt")
+                </div>
+                <div class="text-[1.25rem] font-semibold text-ink max-w-[580px] leading-relaxed">
                     @(isCardFlipped ? card.Back : card.Front)
                 </div>
                 <div class="mt-6 text-[0.75rem] text-ink-muted">
-                    Citation: @card.Citation • Click anywhere to flip
+                    Click anywhere to flip card
                 </div>
             </div>
 
-            <div class="flex justify-center gap-4 mt-6">
-                <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-lg px-4 py-2 text-[0.85rem] font-medium cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed" @onclick="PrevCard" disabled="@(currentCardIndex == 0)">Previous</button>
-                <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-5 py-2 text-[0.85rem] font-semibold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed" @onclick="NextCard" disabled="@(currentCardIndex == AppState.SampleFlashcards.Count - 1)">Next Card</button>
+            <div class="flex items-center justify-between mt-6">
+                <div class="flex items-center gap-2">
+                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-lg px-4 py-2 text-[0.85rem] font-medium cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed" @onclick="PrevCard" disabled="@(currentCardIndex == 0)">
+                        Previous
+                    </button>
+                    <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-5 py-2 text-[0.85rem] font-semibold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed" @onclick="NextCard" disabled="@(currentCardIndex == AppState.SampleFlashcards.Count - 1)">
+                        Next Card
+                    </button>
+                </div>
+
+                <span class="text-[0.8rem] text-ink-muted font-mono">
+                    @(currentCardIndex + 1) / @AppState.SampleFlashcards.Count
+                </span>
             </div>
         }
     </div>
@@ -768,6 +936,20 @@ else if (AppState.ActiveView == "settings")
         var text = chatInputText;
         chatInputText = string.Empty;
         await AppState.AddChatMessageAsync(text);
+    }
+
+    private async Task GenerateQuiz()
+    {
+        hasSubmittedQuiz = false;
+        quizSelections.Clear();
+        await AppState.GenerateQuizForSelectedDocumentAsync();
+    }
+
+    private async Task GenerateCards()
+    {
+        currentCardIndex = 0;
+        isCardFlipped = false;
+        await AppState.GenerateFlashcardsForSelectedDocumentAsync();
     }
 
     private void NextCard()

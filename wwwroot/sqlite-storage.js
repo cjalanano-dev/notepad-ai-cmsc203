@@ -88,6 +88,26 @@ window.sqliteStorage = {
                 citations_json TEXT,
                 FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
             );
+
+            CREATE TABLE IF NOT EXISTS quizzes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                question TEXT NOT NULL,
+                options_json TEXT NOT NULL,
+                answer_index INTEGER NOT NULL,
+                explanation TEXT NOT NULL,
+                citation TEXT NOT NULL,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS flashcards (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                front TEXT NOT NULL,
+                back TEXT NOT NULL,
+                citation TEXT NOT NULL,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+            );
         `;
         this.db.run(schema);
     },
