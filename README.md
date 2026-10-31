@@ -1,35 +1,35 @@
-# 🧠 Notepad AI (Offline Reviewer Prototype)
+# Notepad AI (Offline Reviewer Prototype)
 
 > An offline-first, local AI-powered study companion and research assistant built with **Blazor WebAssembly (.NET 10)**, **Tailwind CSS**, and **Ollama**. Turn documents into interactive concept mind maps, grounded flashcards, quizzes, and RAG-based AI chats—completely private and locally processed.
 
 ---
 
-## ✨ Features
+## Features
 
-### 🗺️ Interactive Mind Map & Concept Graph
+### Interactive Mind Map & Concept Graph
 - **Dynamic Mind Map Canvas**: Pan, zoom, and explore auto-generated concept relationships.
 - **Draggable Nodes**: Freely reposition concept nodes with connecting dynamic edges and relationship labels following in real-time.
 - **Interactive Controls**: Zoom in/out, anchored wheel scrolling, and one-click view reset toolbar inspired by Google NotebookLM and Gizmo.
 - **Verbatim Evidence Linking**: Click any node to open an inspection drawer showing grounded explanations along with exact source passage citations and page numbers.
 
-### 💬 Grounded AI Reviewer Chat
+### Grounded AI Reviewer Chat
 - **RAG-Powered Chat**: Ask questions directly about your uploaded documents and notes.
 - **Passage-Level Citations**: Every claim is verifiable with interactive source passage chips.
 - **Conversational UI**: Clean, ChatGPT-inspired chat drawer with modern pill input and frosted glass aesthetics.
 
-### 🎓 Active Recall & Study Suite
+### Active Recall & Study Suite
 - **Interactive Quizzes**: Multiple-choice assessments generated directly from source materials with explanation breakdowns.
 - **Concept Flashcards**: Flip cards for core definitions, algorithms, and key theorems.
 - **Essay Synthesizer & Grader**: Draft essays on key topics and receive instant AI rubric grading and feedback.
 
-### 🎨 Modern, Distraction-Free UI
+### Modern, Distraction-Free UI
 - **Design Inspiration**: Combines the structured information density of **Google NotebookLM**, the conversational polish of **OpenAI ChatGPT**, and the smooth aesthetic of **Gizmo**.
 - **Dark & Light Modes**: Seamless switching between a refined charcoal palette and clean light canvas.
 - **Command Palette (`Ctrl + K`)**: Fast keyboard navigation across recent documents, library collections, and views.
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+## Architecture & Tech Stack
 
 - **Frontend**: Blazor WebAssembly (.NET 10)
 - **Styling**: Tailwind CSS v3 with customized typography & frosted glass utilities
@@ -39,7 +39,7 @@
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -85,7 +85,7 @@ https://localhost:5001 or http://localhost:5000
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## Keyboard Shortcuts
 
 | Shortcut | Action |
 | :--- | :--- |
@@ -97,7 +97,7 @@ https://localhost:5001 or http://localhost:5000
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 BlazorApp1/
@@ -126,7 +126,4 @@ BlazorApp1/
 
 ---
 
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
 

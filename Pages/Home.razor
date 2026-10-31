@@ -7,46 +7,78 @@
 {
     <!-- DASHBOARD VIEW -->
     <div class="flex-1 overflow-y-auto px-14 py-9">
-        <!-- Top Upload Zone -->
-        <div class="border-2 border-dashed border-line-strong rounded-2xl bg-[#11151f]/60 backdrop-blur-md p-9 text-center cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] mb-10 flex flex-col items-center justify-center hover:border-accent hover:bg-accent-soft hover:-translate-y-0.5 group" @onclick="SimulateUpload">
-            <div class="w-12 h-12 rounded-xl bg-surface-raised border border-line flex items-center justify-center text-accent mb-3.5 shadow-[0_4px_12px_rgba(0,0,0,0.2)] group-hover:scale-105 transition-transform">
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>
-                </svg>
+        <!-- Top Upload Zone with Real File Upload Support -->
+        <div class="border border-line rounded-xl bg-surface p-7 text-center transition-all mb-8 flex flex-col items-center justify-center hover:border-line-strong relative">
+            <InputFile OnChange="HandleFileUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".pdf,.txt,.md" />
+            <div class="w-10 h-10 rounded-lg bg-surface-raised border border-line flex items-center justify-center text-ink-secondary mb-3">
+                @if (isUploading)
+                {
+                    <svg class="animate-spin w-5 h-5 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                }
+                else
+                {
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>
+                    </svg>
+                }
             </div>
-            <div class="text-[0.925rem] font-semibold text-ink mb-1">@(isUploading ? "Processing document..." : "Turn your notes into a study space. Add them here.")</div>
-            <div class="text-[0.75rem] text-ink-muted">PDF, TXT, or Markdown • Click to upload sample notes</div>
+            <div class="text-[0.925rem] font-medium text-ink mb-1">
+                @(isUploading ? uploadProgressMessage : "Upload documents to get started")
+            </div>
+            <div class="text-[0.75rem] text-ink-muted">
+                PDF, TXT, or Markdown
+            </div>
         </div>
 
-        <div class="mb-8">
-            <h1 class="text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Recent discoveries</h1>
-            <p class="text-ink-secondary text-[0.9rem]">Pick up right where you left off or dive into newly synthesized graph concepts.</p>
+        <div class="mb-6 flex items-center justify-between">
+            <div>
+                <h1 class="text-[1.35rem] font-semibold tracking-tight text-ink">Documents</h1>
+                <p class="text-ink-secondary text-[0.825rem]">Select a document to review notes, inspect concepts, or chat.</p>
+            </div>
+            <span class="text-[0.75rem] text-ink-muted font-mono">@AppState.Documents.Count items</span>
         </div>
 
-        <!-- Reviewers Notebook Card Grid -->
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(215px,1fr))] gap-[1.85rem] mt-5">
-            @foreach (var doc in AppState.Documents)
-            {
-                <div class="bg-surface border border-line rounded-[14px] overflow-hidden cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col relative shadow-card hover:-translate-y-1 hover:border-accent-border hover:shadow-card-hover group" @onclick="() => AppState.SelectDocument(doc.Id)">
-                    <button class="opacity-0 group-hover:opacity-100 absolute top-2 right-2 bg-[#0b0f17]/80 border border-white/15 text-white rounded-lg p-1.5 cursor-pointer transition-all backdrop-blur-md z-10 hover:bg-danger hover:border-danger" @onclick:stopPropagation="true" @onclick="() => AppState.MoveToTrash(doc.Id)" title="Move to trash">
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                        </svg>
-                    </button>
-                    <div class="h-[148px] w-full relative overflow-hidden bg-[#0f1219]">
-                        <img src="@(doc.CoverUrl ?? "assets/notebook-covers/cover-01.jpg")" alt="Cover" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                        <div class="absolute inset-0 bg-gradient-to-b from-black/5 to-[#0b0f17]/75"></div>
-                    </div>
-                    <div class="p-4 flex flex-col flex-1">
-                        <div class="text-[0.885rem] font-semibold text-ink leading-snug mb-1.5 line-clamp-2" title="@doc.Filename">@doc.Filename</div>
-                        <div class="text-[0.725rem] text-ink-muted flex items-center justify-between mt-auto pt-2.5 border-t border-white/5">
-                            <span>@doc.ChunkCount passages</span>
-                            <span>@doc.UploadedAt.ToString("MMM d")</span>
+        @if (AppState.Documents.Count == 0)
+        {
+            <div class="border border-line rounded-xl bg-surface/50 p-12 text-center flex flex-col items-center justify-center">
+                <svg class="w-8 h-8 text-ink-muted mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <div class="text-[0.9rem] font-medium text-ink mb-1">No documents uploaded yet</div>
+                <div class="text-[0.785rem] text-ink-muted max-w-sm">Drag and drop your study notes or research papers above to create interactive mind maps.</div>
+            </div>
+        }
+        else
+        {
+            <!-- Reviewers Notebook Card Grid -->
+            <div class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
+                @foreach (var doc in AppState.Documents)
+                {
+                    <div class="bg-surface border border-line rounded-xl overflow-hidden cursor-pointer transition-all hover:border-line-strong flex flex-col relative group" @onclick="() => AppState.SelectDocument(doc.Id)">
+                        <button class="opacity-0 group-hover:opacity-100 absolute top-2 right-2 bg-black/60 backdrop-blur-sm border border-white/20 text-white hover:bg-danger rounded-md p-1.5 cursor-pointer transition-all z-10" @onclick:stopPropagation="true" @onclick="() => AppState.MoveToTrash(doc.Id)" title="Delete document">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                            </svg>
+                        </button>
+                        <div class="h-[130px] w-full relative overflow-hidden bg-surface-raised">
+                            <img src="@(doc.CoverUrl ?? "assets/notebook-covers/cover-01.jpg")" alt="Cover" class="w-full h-full object-cover" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        </div>
+                        <div class="p-4 flex flex-col flex-1">
+                            <div class="text-[0.875rem] font-medium text-ink leading-snug mb-2 line-clamp-2" title="@doc.Filename">@doc.Filename</div>
+                            <div class="text-[0.725rem] text-ink-muted flex items-center justify-between mt-auto pt-2 border-t border-line/60">
+                                <span>@doc.ChunkCount passages</span>
+                                <span>@doc.UploadedAt.ToString("MMM d")</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
+                }
+            </div>
+        }
     </div>
 }
 else if (AppState.ActiveView == "workspace")
@@ -54,68 +86,68 @@ else if (AppState.ActiveView == "workspace")
     <!-- WORKSPACE / CONCEPT GRAPH & REVIEWER CHAT -->
     <div class="flex h-full w-full overflow-hidden relative">
         <div class="flex-1 flex flex-col h-full relative canvas-bg overflow-hidden">
-            <!-- Top Floating Workspace Bar (NotebookLM / Gizmo frosted pill design) -->
-            <div class="absolute top-4 left-5 right-5 h-[52px] bg-[#11151f]/85 backdrop-blur-xl border border-line/80 rounded-2xl flex items-center justify-between px-4 z-20 shadow-card">
-                <div class="flex items-center gap-3 text-[0.85rem] font-semibold text-ink">
-                    <button class="bg-surface-raised/90 border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-xl px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer interactive-btn" @onclick='() => AppState.SetView("dashboard")' title="Back to Recent">
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Top Floating Workspace Bar -->
+            <div class="absolute top-4 left-5 right-5 h-[48px] bg-surface/90 backdrop-blur-md border border-line rounded-lg flex items-center justify-between px-3.5 z-20">
+                <div class="flex items-center gap-2.5 text-[0.85rem] font-medium text-ink">
+                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md p-1.5 flex items-center justify-center cursor-pointer transition-colors" @onclick='() => AppState.SetView("dashboard")' title="Back to Documents">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="15 18 9 12 15 6"/>
                         </svg>
                     </button>
-                    <div class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
-                    <span class="max-w-[340px] overflow-hidden text-ellipsis whitespace-nowrap text-ink font-medium tracking-tight">
+                    <span class="max-w-[340px] overflow-hidden text-ellipsis whitespace-nowrap text-ink">
                         @(AppState.SelectedDocument?.Filename ?? "Document Workspace")
                     </span>
-                    <span class="hidden md:inline-flex text-[0.7rem] bg-accent-soft text-accent border border-accent/20 px-2 py-0.5 rounded-full font-mono font-medium">Mind Map</span>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button class="bg-surface-raised/90 border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-xl px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer interactive-btn" @onclick='() => AppState.SetView("quiz")'>
-                        <svg class="w-3.5 h-3.5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md px-2.5 py-1 text-[0.785rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors" @onclick="() => isSourcesPanelOpen = !isSourcesPanelOpen" title="View Sources">
+                        <svg class="w-3.5 h-3.5 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <span>Sources (@(AppState.SelectedDocument?.Passages.Count ?? 0))</span>
+                    </button>
+                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md px-2.5 py-1 text-[0.785rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors" @onclick='() => AppState.SetView("quiz")'>
+                        <svg class="w-3.5 h-3.5 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"/><path d="9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
                         </svg>
                         <span>Quiz</span>
                     </button>
-                    <button class="bg-surface-raised/90 border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-xl px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer interactive-btn" @onclick='() => AppState.SetView("flashcards")'>
-                        <svg class="w-3.5 h-3.5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md px-2.5 py-1 text-[0.785rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors" @onclick='() => AppState.SetView("flashcards")'>
+                        <svg class="w-3.5 h-3.5 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
                         </svg>
                         <span>Cards</span>
                     </button>
-                    <button class="rounded-xl px-3.5 py-1.5 text-[0.8rem] font-medium flex items-center gap-2 cursor-pointer interactive-btn border @(isChatVisible ? "bg-accent text-[#0b0f17] border-accent font-semibold shadow-sm" : "bg-surface-raised/90 border-line text-ink-secondary hover:bg-surface-hover hover:text-ink hover:border-line-strong")" @onclick="() => isChatVisible = !isChatVisible">
-                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <button class="rounded-md px-3 py-1 text-[0.785rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors border @(isChatVisible ? "bg-accent text-[#0b0f17] border-accent" : "bg-surface-raised border-line text-ink-secondary hover:bg-surface-hover hover:text-ink")" @onclick="() => isChatVisible = !isChatVisible">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>
                         </svg>
-                        <span>Reviewer Chat</span>
+                        <span>Chat</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Mind Map Floating Zoom & Reset Toolbar (Google NotebookLM & ChatGPT Style) -->
-            <div class="absolute bottom-6 left-6 z-20 flex items-center gap-1.5 bg-[#11151f]/90 backdrop-blur-xl border border-line/90 rounded-2xl p-1.5 shadow-card select-none">
-                <button class="w-8 h-8 rounded-xl bg-surface-raised/90 hover:bg-surface-hover text-ink-secondary hover:text-ink flex items-center justify-center interactive-btn border border-line/60" @onclick="ZoomIn" title="Zoom in (or use mouse scroll)">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <!-- Mind Map Floating Zoom & Reset Toolbar -->
+            <div class="absolute bottom-5 left-5 z-20 flex items-center gap-1 bg-surface border border-line rounded-lg p-1 select-none">
+                <button class="w-7 h-7 rounded bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink flex items-center justify-center border border-line transition-colors" @onclick="ZoomIn" title="Zoom in">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
                 </button>
-                <button class="w-8 h-8 rounded-xl bg-surface-raised/90 hover:bg-surface-hover text-ink-secondary hover:text-ink flex items-center justify-center interactive-btn border border-line/60" @onclick="ZoomOut" title="Zoom out (or use mouse scroll)">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <button class="w-7 h-7 rounded bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink flex items-center justify-center border border-line transition-colors" @onclick="ZoomOut" title="Zoom out">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
                 </button>
-                <div class="h-4 w-[1px] bg-line/80 mx-1"></div>
-                <button class="px-2.5 h-8 rounded-xl bg-surface-raised/90 hover:bg-surface-hover text-ink-secondary hover:text-ink flex items-center gap-1.5 text-[0.75rem] font-mono font-medium interactive-btn border border-line/60" @onclick="ResetCanvasView" title="Reset view">
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                        <path d="M3 3v5h5"/>
-                    </svg>
+                <div class="h-3.5 w-[1px] bg-line mx-0.5"></div>
+                <button class="px-2 h-7 rounded bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink flex items-center gap-1 text-[0.72rem] font-mono border border-line transition-colors" @onclick="ResetCanvasView" title="Reset view">
                     <span id="map-zoom-level-text">100%</span>
                 </button>
             </div>
 
             <!-- Mind Map Helper Tooltip Hint -->
             <div class="absolute bottom-6 right-6 z-20 hidden lg:flex items-center gap-2 bg-[#11151f]/80 backdrop-blur-md border border-line/60 rounded-full px-3.5 py-1.5 text-[0.72rem] text-ink-muted select-none">
-                <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
                 <span>Drag nodes to organize • Drag canvas or scroll to pan & zoom</span>
             </div>
 
@@ -123,11 +155,8 @@ else if (AppState.ActiveView == "workspace")
             <svg id="concept-map-svg" class="graph-canvas w-full h-full" viewBox="0 0 900 650">
                 <defs>
                     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#64748b" />
+                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#94a3b8" />
                     </marker>
-                    <filter id="node-glow" x="-20%" y="-20%" width="140%" height="140%">
-                        <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#38bdf8" flood-opacity="0.25" />
-                    </filter>
                 </defs>
 
                 <!-- Panning and Zooming Viewport Container -->
@@ -147,109 +176,95 @@ else if (AppState.ActiveView == "workspace")
                                   data-target-id="@edge.TargetNodeId"
                                   x1="@source.X" y1="@source.Y"
                                   x2="@target.X" y2="@target.Y"
-                                  stroke="#334155"
-                                  stroke-width="2"
-                                  stroke-dasharray="4 2"
+                                  stroke="#64748b"
+                                  stroke-width="2.5"
+                                  stroke-linecap="round"
                                   marker-end="url(#arrow)" />
 
-                            <g id="edge-label-@edge.Id" transform="translate(@midX, @midY)">
-                                <rect x="-35" y="-10" width="70" height="20" rx="6" fill="#0b0f17" stroke="#1e293b" stroke-width="1" />
-                                <text x="0" y="3.5" text-anchor="middle" font-size="9" font-weight="500" fill="#94a3b8" font-family="Plus Jakarta Sans">@edge.Relationship</text>
-                            </g>
+                            @if (!string.IsNullOrWhiteSpace(edge.Relationship))
+                            {
+                                <g id="edge-label-@edge.Id" transform="translate(@midX, @midY)">
+                                    <rect x="-44" y="-11" width="88" height="22" rx="5" fill="#0f172a" stroke="#475569" stroke-width="1.5" />
+                                    <text x="0" y="3.5" text-anchor="middle" font-size="9.5" font-weight="600" fill="#cbd5e1" font-family="Plus Jakarta Sans">@edge.Relationship</text>
+                                </g>
+                            }
                         }
                     }
 
-                    <!-- Nodes (Smooth draggable mind map pills) -->
+                    <!-- Nodes (Radial Mind Map Cards) -->
                     @foreach (var node in AppState.CurrentNodes)
                     {
                         var isSelected = AppState.SelectedNode?.Id == node.Id;
                         var isRoot = node.NodeType == "root";
-                        var nodeFill = isSelected ? "#182638" : (isRoot ? "#131e2e" : "#11151f");
-                        var nodeStroke = isSelected ? "#38bdf8" : (isRoot ? "#0284c7" : "#1e293b");
-                        var badgeBg = isRoot ? "#38bdf8" : "#94a3b8";
-                        var nodeSubtitle = isRoot ? "Core Anchor" : "Key Insight";
+                        var isSub = node.NodeType == "subconcept";
+
+                        var nodeWidth = isRoot ? 210 : (isSub ? 160 : 180);
+                        var nodeHeight = isRoot ? 72 : (isSub ? 52 : 62);
+                        var halfW = nodeWidth / 2;
+                        var halfH = nodeHeight / 2;
+
+                        var nodeFill = isSelected ? "#1e293b" : (isRoot ? "#0f2038" : (isSub ? "#0b0f17" : "#111827"));
+                        var nodeStroke = isSelected ? "#38bdf8" : (isRoot ? "#38bdf8" : (isSub ? "#334155" : "#475569"));
 
                         <g id="node-g-@node.Id"
-                           class="graph-node @(isSelected ? "selected" : "")"
+                           class="graph-node"
                            data-node-id="@node.Id"
                            data-node-x="@node.X"
                            data-node-y="@node.Y"
-                           transform="translate(@(node.X - 95), @(node.Y - 36))"
+                           data-half-w="@halfW"
+                           data-half-h="@halfH"
+                           transform="translate(@(node.X - halfW), @(node.Y - halfH))"
                            @onclick="() => AppState.SelectNode(node.Id)">
                             
-                            <!-- Card Background -->
-                            <rect width="190" height="72" rx="14"
+                            <!-- Card Shape -->
+                            <rect width="@nodeWidth" height="@nodeHeight" rx="@(isRoot ? "12" : "8")"
                                   fill="@nodeFill"
                                   stroke="@nodeStroke"
-                                  stroke-width="@(isSelected ? "2.5" : "1.5")"
-                                  filter="@(isSelected ? "url(#node-glow)" : "")" />
+                                  stroke-width="@(isSelected ? "2.5" : (isRoot ? "2" : "1.25"))" />
 
-                            <!-- Left Accent Color Indicator -->
-                            <rect x="4" y="16" width="3.5" height="40" rx="1.75" fill="@badgeBg" opacity="@(isRoot || isSelected ? "1" : "0.5")" />
-
-                            <!-- Header Pill Icon / Dot -->
-                            <circle cx="22" cy="24" r="4.5" fill="@badgeBg" />
+                            @if (isRoot)
+                            {
+                                <rect x="0" y="0" width="4" height="@nodeHeight" rx="2" fill="#38bdf8" />
+                            }
 
                             <!-- Concept Label & Subtitle -->
-                            <text x="34" y="27" font-size="11.5" font-weight="600" fill="#f8fafc" font-family="Plus Jakarta Sans">@node.Label</text>
-                            <text x="22" y="50" font-size="9.5" font-weight="500" fill="#94a3b8" font-family="Plus Jakarta Sans">@nodeSubtitle</text>
+                            <text x="14" y="@(isSub ? 26 : 30)" font-size="@(isRoot ? "12.5" : (isSub ? "10.5" : "11.5"))" font-weight="600" fill="#f8fafc" font-family="Plus Jakarta Sans">@node.Label</text>
+                            <text x="14" y="@(isSub ? 42 : 48)" font-size="@(isSub ? "8.5" : "9")" fill="#94a3b8" font-family="Plus Jakarta Sans">@(isRoot ? "Central Topic" : (isSub ? "Detail" : "Key Subtopic"))</text>
                         </g>
                     }
                 </g>
             </svg>
         </div>
 
-        <!-- Concept Details Side Panel (Google NotebookLM & Gizmo styled inspection card) -->
+        <!-- Concept Details Side Panel -->
         @if (AppState.SelectedDetail != null)
         {
-            <aside class="w-[360px] h-full bg-surface/95 backdrop-blur-md border-l border-line flex flex-col overflow-hidden z-30 shadow-card">
-                <div class="px-5 pt-5 pb-4 border-b border-line flex items-start justify-between">
+            <aside class="w-[360px] h-full bg-surface border-l border-line flex flex-col overflow-hidden z-30">
+                <div class="px-5 py-4 border-b border-line flex items-start justify-between">
                     <div>
-                        <div class="flex items-center gap-2 mb-1.5">
-                            <span class="w-2 h-2 rounded-full bg-accent"></span>
-                            <span class="text-[0.68rem] font-bold uppercase tracking-wider text-accent">Verified Concept</span>
-                        </div>
-                        <h2 class="text-[1.2rem] font-bold text-ink leading-snug tracking-tight">@AppState.SelectedDetail.Label</h2>
+                        <div class="text-[0.68rem] font-semibold uppercase tracking-wider text-ink-muted mb-1">Concept</div>
+                        <h2 class="text-[1.1rem] font-semibold text-ink leading-snug">@AppState.SelectedDetail.Label</h2>
                     </div>
                 </div>
 
                 <div class="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
                     <div>
-                        <div class="text-[0.72rem] font-bold uppercase tracking-wider text-ink-muted mb-2.5 flex items-center gap-1.5">
-                            <div class="w-5 h-5 rounded-md bg-accent-soft text-accent flex items-center justify-center">
-                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                                    <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
-                                </svg>
-                            </div>
-                            <span>Synthesized Explanation</span>
-                        </div>
-                        <div class="bg-surface-raised border border-line rounded-2xl p-4 text-[0.875rem] leading-relaxed text-ink-secondary chat-prose shadow-sm">
+                        <div class="text-[0.72rem] font-semibold uppercase tracking-wider text-ink-muted mb-2">Explanation</div>
+                        <div class="bg-surface-raised border border-line rounded-lg p-3.5 text-[0.85rem] leading-relaxed text-ink-secondary chat-prose">
                             @TextFormatter.ToFormattedHtml(AppState.SelectedDetail.Explanation)
                         </div>
                     </div>
 
                     <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="text-[0.72rem] font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
-                                <div class="w-5 h-5 rounded-md bg-accent-soft text-accent flex items-center justify-center">
-                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                                        <polyline points="14 2 14 8 20 8"/>
-                                    </svg>
-                                </div>
-                                <span>Verbatim Evidence (@AppState.SelectedDetail.Sources.Count)</span>
-                            </div>
+                        <div class="text-[0.72rem] font-semibold uppercase tracking-wider text-ink-muted mb-2">
+                            Evidence Passages (@AppState.SelectedDetail.Sources.Count)
                         </div>
 
-                        <p class="text-[0.75rem] text-ink-muted mb-3.5">
-                            Direct citations retrieved and verified from your document passages:
-                        </p>
-
-                        <div class="flex flex-col gap-3">
+                        <div class="flex flex-col gap-2.5">
                             @if (!AppState.SelectedDetail.Sources.Any())
                             {
-                                <div class="p-4 bg-canvas/60 border border-line rounded-2xl text-[0.785rem] text-ink-muted italic text-center">
-                                    No direct passage citations found.
+                                <div class="p-3 bg-surface-raised border border-line rounded-lg text-[0.785rem] text-ink-muted italic">
+                                    No citations linked to this concept.
                                 </div>
                             }
                             else
@@ -257,30 +272,15 @@ else if (AppState.ActiveView == "workspace")
                                 int srcIndex = 1;
                                 @foreach (var src in AppState.SelectedDetail.Sources)
                                 {
-                                    <div class="bg-surface-raised/80 border border-line hover:border-line-strong transition-all duration-200 rounded-2xl p-3.5 shadow-sm group">
-                                        <div class="flex items-center justify-between text-[0.725rem] text-ink-muted mb-2.5 pb-2 border-b border-line/60">
-                                            <div class="flex items-center gap-2">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
-                                                <span class="font-mono text-ink-muted font-medium">Citation #@(srcIndex++)</span>
-                                            </div>
-                                            <span class="bg-surface border border-line text-accent px-2.5 py-0.5 rounded-full font-mono text-[0.685rem] font-medium shadow-sm">
-                                                Page @src.PageNumber
-                                            </span>
+                                    <div class="bg-surface-raised border border-line rounded-lg p-3">
+                                        <div class="flex items-center justify-between text-[0.7rem] text-ink-muted mb-2 pb-1.5 border-b border-line/60">
+                                            <span class="font-mono">Citation #@(srcIndex++)</span>
+                                            <span class="font-mono text-ink-secondary">Page @src.PageNumber</span>
                                         </div>
 
-                                        @if (!string.IsNullOrEmpty(src.DocumentFilename))
-                                        {
-                                            <div class="text-[0.7rem] text-ink-muted font-mono mb-2 truncate flex items-center gap-1.5">
-                                                <svg class="w-3.5 h-3.5 text-ink-muted flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
-                                                </svg>
-                                                <span class="truncate">@src.DocumentFilename</span>
-                                            </div>
-                                        }
-
-                                        <blockquote class="text-[0.8rem] text-ink-secondary italic border-l-2 border-accent/80 pl-3 leading-relaxed whitespace-pre-wrap">
+                                        <p class="text-[0.8rem] text-ink-secondary leading-relaxed select-text">
                                             &ldquo;@src.Content.Trim()&rdquo;
-                                        </blockquote>
+                                        </p>
                                     </div>
                                 }
                             }
@@ -290,41 +290,31 @@ else if (AppState.ActiveView == "workspace")
             </aside>
         }
 
-        <!-- Interactive AI Reviewer Chat Drawer (ChatGPT & NotebookLM conversational interface) -->
+        <!-- Chat Drawer -->
         @if (isChatVisible)
         {
-            <aside class="w-[380px] h-full bg-surface/95 backdrop-blur-md border-l border-line flex flex-col z-30">
-                <div class="px-5 pt-5 pb-4 border-b border-line flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-accent-soft border border-accent/20 flex items-center justify-center text-accent">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                                <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-1.5">
-                                <h2 class="text-[1.05rem] font-bold text-ink leading-none">Reviewer AI</h2>
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                            </div>
-                            <span class="text-[0.72rem] text-ink-muted">Grounded in verified passages</span>
-                        </div>
+            <aside class="w-[380px] h-full bg-surface border-l border-line flex flex-col z-30">
+                <div class="px-5 py-4 border-b border-line flex items-center justify-between">
+                    <div>
+                        <h2 class="text-[1rem] font-semibold text-ink">Reviewer Chat</h2>
+                        <span class="text-[0.72rem] text-ink-muted">Ask questions about selected document</span>
                     </div>
-                    <button class="bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink p-1.5 rounded-xl border border-line flex items-center justify-center transition-colors cursor-pointer interactive-btn" @onclick="() => isChatVisible = false" title="Close chat">
+                    <button class="bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink p-1.5 rounded-lg border border-line flex items-center justify-center transition-colors cursor-pointer" @onclick="() => isChatVisible = false" title="Close chat">
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="6"/>
                         </svg>
                     </button>
                 </div>
 
-                <div class="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
+                <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
                     @foreach (var msg in AppState.CurrentMessages)
                     {
                         var isUser = msg.Role == "user";
-                        <div class="flex flex-col max-w-[92%] @(isUser ? "self-end" : "self-start")">
-                            <div class="text-[0.675rem] font-semibold tracking-wider uppercase mb-1 px-1 @(isUser ? "text-right text-ink-muted" : "text-accent")">
-                                @(isUser ? "You" : "Reviewer AI")
+                        <div class="flex flex-col max-w-[90%] @(isUser ? "self-end" : "self-start")">
+                            <div class="text-[0.675rem] font-medium mb-1 px-1 @(isUser ? "text-right text-ink-muted" : "text-ink-secondary")">
+                                @(isUser ? "You" : "Reviewer")
                             </div>
-                            <div class="@(isUser ? "bg-[#252e42] text-white rounded-2xl rounded-tr-sm px-4 py-3 text-[0.875rem] leading-relaxed shadow-sm" : "bg-surface-raised border border-line text-ink rounded-2xl rounded-tl-sm px-4 py-3.5 text-[0.875rem] leading-relaxed shadow-sm")">
+                            <div class="@(isUser ? "bg-[#252e42] text-white rounded-lg px-3.5 py-2.5 text-[0.85rem] leading-relaxed" : "bg-surface-raised border border-line text-ink rounded-lg px-3.5 py-2.5 text-[0.85rem] leading-relaxed")">
                                 @if (isUser)
                                 {
                                     <div class="whitespace-pre-wrap">@msg.Content</div>
@@ -338,14 +328,11 @@ else if (AppState.ActiveView == "workspace")
 
                                 @if (msg.Citations.Any())
                                 {
-                                    <div class="flex flex-wrap gap-1.5 mt-3 pt-2.5 border-t border-line/60">
+                                    <div class="flex flex-wrap gap-1.5 mt-2.5 pt-2 border-t border-line/60">
                                         @foreach (var c in msg.Citations)
                                         {
-                                            <div class="inline-flex items-center gap-1.5 bg-surface border border-line rounded-full px-2.5 py-0.5 text-[0.7rem] text-accent font-medium hover:border-accent/40 transition-colors shadow-sm" title="@c.Excerpt">
-                                                <svg class="w-3 h-3 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                                                </svg>
-                                                <span>Passage @c.PassageId • p. @c.PageNumber</span>
+                                            <div class="inline-flex items-center gap-1 bg-surface border border-line rounded px-2 py-0.5 text-[0.68rem] text-ink-muted font-mono" title="@c.Excerpt">
+                                                <span>p. @c.PageNumber</span>
                                             </div>
                                         }
                                     </div>
@@ -356,29 +343,68 @@ else if (AppState.ActiveView == "workspace")
 
                     @if (AppState.IsAiBusy)
                     {
-                        <div class="flex flex-col max-w-[90%] self-start animate-fade-in">
-                            <div class="text-[0.675rem] font-semibold tracking-wider uppercase mb-1 px-1 text-accent">Reviewer AI</div>
-                            <div class="bg-surface-raised border border-line-strong rounded-2xl px-4 py-3 flex items-center gap-2.5 text-[0.825rem] text-ink-secondary shadow-sm">
-                                <svg class="animate-spin w-4 h-4 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <div class="flex flex-col max-w-[90%] self-start">
+                            <div class="text-[0.675rem] font-medium mb-1 px-1 text-ink-secondary">Reviewer</div>
+                            <div class="bg-surface-raised border border-line rounded-lg px-3.5 py-2.5 flex items-center gap-2 text-[0.825rem] text-ink-secondary">
+                                <svg class="animate-spin w-3.5 h-3.5 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                                 </svg>
-                                <span>@(string.IsNullOrWhiteSpace(AppState.AiBusyMessage) ? "Analyzing reviewer passages..." : AppState.AiBusyMessage)</span>
+                                <span>@(string.IsNullOrWhiteSpace(AppState.AiBusyMessage) ? "Analyzing..." : AppState.AiBusyMessage)</span>
                             </div>
                         </div>
                     }
                 </div>
 
-                <!-- Modern Pill Chat Input (ChatGPT inspired) -->
-                <div class="p-4 border-t border-line bg-surface/90">
-                    <form @onsubmit="SendMessage" class="flex items-center gap-2 bg-canvas border border-line-strong rounded-2xl px-3 py-1.5 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20 transition-all shadow-inner">
-                        <input type="text" class="flex-1 bg-transparent border-none outline-none text-ink text-[0.875rem] py-1.5 px-1 placeholder:text-ink-muted" placeholder="Ask anything about this document..." @bind="chatInputText" />
-                        <button type="submit" class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-xl w-8 h-8 flex items-center justify-center cursor-pointer interactive-btn flex-shrink-0 shadow-sm" title="Send message">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
-                            </svg>
+                <!-- Chat Input -->
+                <div class="p-3 border-t border-line bg-surface">
+                    <form @onsubmit="SendMessage" class="flex items-center gap-2 bg-canvas border border-line rounded-lg px-2.5 py-1 focus-within:border-accent transition-all">
+                        <input type="text" class="flex-1 bg-transparent border-none outline-none text-ink text-[0.85rem] py-1.5 px-1 placeholder:text-ink-muted" placeholder="Ask about this document..." @bind="chatInputText" />
+                        <button type="submit" class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-md px-2.5 py-1 text-[0.8rem] font-medium cursor-pointer transition-colors" title="Send message">
+                            Send
                         </button>
                     </form>
+                </div>
+            </aside>
+        }
+
+        <!-- Source Management Drawer (NotebookLM Source Panel) -->
+        @if (isSourcesPanelOpen && AppState.SelectedDocument != null)
+        {
+            <aside class="w-[380px] h-full bg-surface/95 backdrop-blur-md border-l border-line flex flex-col z-30 animate-fade-in shadow-card">
+                <div class="px-5 pt-5 pb-4 border-b border-line flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="w-2 h-2 rounded-full bg-accent"></span>
+                            <span class="text-[0.68rem] font-bold uppercase tracking-wider text-accent">Source Management</span>
+                        </div>
+                        <h2 class="text-[1.1rem] font-bold text-ink leading-tight">Document Passages</h2>
+                    </div>
+                    <button class="bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink p-1.5 rounded-xl border border-line flex items-center justify-center transition-colors cursor-pointer interactive-btn" @onclick="() => isSourcesPanelOpen = false">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="6"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-4 border-b border-line bg-canvas/40 flex items-center justify-between text-[0.785rem] text-ink-muted">
+                    <span class="font-mono">@AppState.SelectedDocument.Passages.Count chunks indexed</span>
+                    <span class="text-accent font-medium">Stored in SQLite</span>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+                    @foreach (var passage in AppState.SelectedDocument.Passages)
+                    {
+                        <div class="bg-surface-raised border border-line rounded-xl p-3.5 hover:border-line-strong transition-all">
+                            <div class="flex items-center justify-between text-[0.72rem] text-ink-muted mb-2 border-b border-line/60 pb-1.5">
+                                <span class="font-mono text-accent">Chunk #@passage.Id</span>
+                                <span class="bg-canvas border border-line px-2 py-0.5 rounded font-mono text-[0.68rem]">Page @passage.PageNumber</span>
+                            </div>
+                            <p class="text-[0.82rem] text-ink-secondary leading-relaxed select-text">
+                                @passage.Content
+                            </p>
+                        </div>
+                    }
                 </div>
             </aside>
         }
@@ -651,7 +677,9 @@ else if (AppState.ActiveView == "settings")
 
 @code {
     private bool isUploading = false;
+    private string uploadProgressMessage = "Processing document...";
     private bool isChatVisible = true;
+    private bool isSourcesPanelOpen = false;
     private string chatInputText = string.Empty;
     private Dictionary<int, int> quizSelections = new();
     private bool hasSubmittedQuiz = false;
@@ -663,24 +691,75 @@ else if (AppState.ActiveView == "settings")
         AppState.OnChange += StateHasChanged;
     }
 
-    private async Task SimulateUpload()
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
+        var file = e.File;
+        if (file == null) return;
+
         isUploading = true;
-        var sampleDoc = @"# Distributed Systems and Fault Tolerance
+        uploadProgressMessage = $"Reading {file.Name}...";
+        StateHasChanged();
 
-Distributed systems consist of autonomous computing nodes that communicate over a network to coordinate actions and share state.
+        try
+        {
+            var ext = Path.GetExtension(file.Name).ToLowerInvariant();
+            string extractedText = string.Empty;
 
-## Consensus and Raft
-Distributed consensus enables a cluster of nodes to agree on state transitions despite machine crashes and network partitions. The Raft algorithm decomposes consensus into leader election, log replication, and safety. A node can transition between Leader, Follower, and Candidate states.
+            if (ext == ".pdf")
+            {
+                uploadProgressMessage = "Extracting PDF text layers...";
+                StateHasChanged();
 
-## CAP Theorem and Partition Tolerance
-Eric Brewer's CAP theorem dictates that a distributed data store can simultaneously provide at most two out of three guarantees: Consistency, Availability, and Partition Tolerance. When network partitions occur, systems must choose between consistency and availability.
+                using var stream = file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024); // up to 20MB
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                var bytes = ms.ToArray();
 
-## Vector Clocks and Causal Ordering
-Logical clocks and vector clocks determine the partial ordering of events in distributed systems without synchronized physical clocks. Vector clocks capture causality relationships between events to detect concurrent updates.";
+                var jsonPages = await JSRuntime.InvokeAsync<string>("docParser.extractPdfText", bytes);
+                if (!string.IsNullOrWhiteSpace(jsonPages))
+                {
+                    var pages = System.Text.Json.JsonSerializer.Deserialize<List<PdfPageExtraction>>(jsonPages, new System.Text.Json.JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
 
-        await AppState.AddDocumentWithContentAsync("Distributed Systems and Fault Tolerance.txt", sampleDoc);
-        isUploading = false;
+                    if (pages != null && pages.Count > 0)
+                    {
+                        extractedText = string.Join("\n\n", pages.Select(p => $"--- Page {p.PageNumber} ---\n{p.Content}"));
+                    }
+                }
+            }
+            else
+            {
+                // .txt or .md
+                using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+                using var reader = new StreamReader(stream);
+                extractedText = await reader.ReadToEndAsync();
+            }
+
+            if (!string.IsNullOrWhiteSpace(extractedText))
+            {
+                uploadProgressMessage = "Generating grounded mind map & storing into SQLite...";
+                StateHasChanged();
+                await AppState.AddDocumentWithContentAsync(file.Name, extractedText);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[File Upload Error] {ex.Message}");
+        }
+        finally
+        {
+            isUploading = false;
+            uploadProgressMessage = "Processing document...";
+            StateHasChanged();
+        }
+    }
+
+    private class PdfPageExtraction
+    {
+        public int PageNumber { get; set; }
+        public string Content { get; set; } = string.Empty;
     }
 
     private async Task SendMessage()
@@ -719,6 +798,11 @@ Logical clocks and vector clocks determine the partial ordering of events in dis
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+        {
+            await AppState.InitializeSqliteAsync();
+        }
+
         if (AppState.ActiveView == "workspace")
         {
             dotNetHelper ??= DotNetObjectReference.Create(this);

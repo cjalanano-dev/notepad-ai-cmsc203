@@ -14,6 +14,7 @@ builder.Services.AddSingleton<OllamaService>(sp =>
     return new OllamaService(client, "http://127.0.0.1:11434", "gemma4:31b-cloud");
 });
 builder.Services.AddSingleton<DocumentService>();
+builder.Services.AddSingleton<SqliteStorageService>();
 builder.Services.AddSingleton<VectorService>();
 builder.Services.AddSingleton<ConceptService>();
 builder.Services.AddSingleton<ChatService>();
