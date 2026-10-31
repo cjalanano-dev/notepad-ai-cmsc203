@@ -76,7 +76,9 @@ window.conceptMapInteractions = {
                 // Instantly update SVG DOM elements for 60fps buttery responsiveness
                 const nodeGroup = document.getElementById(`node-g-${this.state.draggedNodeId}`);
                 if (nodeGroup) {
-                    nodeGroup.setAttribute('transform', `translate(${newX - 95}, ${newY - 36})`);
+                    const halfW = parseFloat(nodeGroup.getAttribute('data-half-w') || '90');
+                    const halfH = parseFloat(nodeGroup.getAttribute('data-half-h') || '32');
+                    nodeGroup.setAttribute('transform', `translate(${newX - halfW}, ${newY - halfH})`);
                     nodeGroup.setAttribute('data-node-x', newX);
                     nodeGroup.setAttribute('data-node-y', newY);
                 }
