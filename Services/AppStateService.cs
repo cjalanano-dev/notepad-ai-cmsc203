@@ -16,6 +16,7 @@ public class AppStateService
     public string ActiveView { get; private set; } = "dashboard"; // dashboard, library, workspace, quiz, flashcards, essay, trash, settings
     public string Theme { get; private set; } = "dark"; // dark, light
     public bool IsSidebarCollapsed { get; set; } = false;
+    public bool IsMobileMenuOpen { get; set; } = false;
     public bool IsCommandPaletteOpen { get; set; } = false;
     public bool IsOriginalPreviewOpen { get; set; } = false;
     public bool IsDbLoaded { get; private set; } = false;
@@ -122,6 +123,7 @@ public class AppStateService
     public void SetView(string view)
     {
         ActiveView = view;
+        IsMobileMenuOpen = false;
         NotifyStateChanged();
     }
 
@@ -134,6 +136,39 @@ public class AppStateService
     public void ToggleSidebar()
     {
         IsSidebarCollapsed = !IsSidebarCollapsed;
+        NotifyStateChanged();
+    }
+
+    public void ToggleMobileMenu()
+    {
+        IsMobileMenuOpen = !IsMobileMenuOpen;
+        NotifyStateChanged();
+    }
+
+    public void CloseMobileMenu()
+    {
+        if (IsMobileMenuOpen)
+        {
+            IsMobileMenuOpen = false;
+            NotifyStateChanged();
+        }
+    }
+
+    public void OpenCommandPalette()
+    {
+        IsCommandPaletteOpen = true;
+        NotifyStateChanged();
+    }
+
+    public void CloseCommandPalette()
+    {
+        IsCommandPaletteOpen = false;
+        NotifyStateChanged();
+    }
+
+    public void ToggleCommandPalette()
+    {
+        IsCommandPaletteOpen = !IsCommandPaletteOpen;
         NotifyStateChanged();
     }
 

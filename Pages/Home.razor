@@ -6,11 +6,11 @@
 @if (AppState.ActiveView == "dashboard")
 {
     <!-- DASHBOARD VIEW -->
-    <div class="flex-1 overflow-y-auto px-14 py-9">
+    <div class="flex-1 overflow-y-auto px-4 py-5 sm:px-8 sm:py-7 lg:px-14 lg:py-9">
         <!-- Top Upload Zone with Real File Upload Support -->
-        <div class="border border-line rounded-xl bg-surface p-7 text-center transition-all mb-8 flex flex-col items-center justify-center hover:border-line-strong relative">
+        <div class="border border-line rounded-xl bg-surface p-5 sm:p-7 text-center transition-all mb-6 sm:mb-8 flex flex-col items-center justify-center hover:border-accent-border relative">
             <InputFile OnChange="HandleFileUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".pdf,.txt,.md" />
-            <div class="w-10 h-10 rounded-lg bg-surface-raised border border-line flex items-center justify-center text-ink-secondary mb-3">
+            <div class="w-10 h-10 rounded-lg bg-surface-raised border border-line flex items-center justify-center text-accent mb-3">
                 @if (isUploading)
                 {
                     <svg class="animate-spin w-5 h-5 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -33,17 +33,17 @@
             </div>
         </div>
 
-        <div class="mb-6 flex items-center justify-between">
+        <div class="mb-5 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-                <h1 class="text-[1.35rem] font-semibold tracking-tight text-ink">Documents</h1>
+                <h1 class="text-xl sm:text-[1.35rem] font-semibold tracking-tight text-ink">Documents</h1>
                 <p class="text-ink-secondary text-[0.825rem]">Select a document to review notes, inspect concepts, or chat.</p>
             </div>
-            <span class="text-[0.75rem] text-ink-muted font-mono">@AppState.Documents.Count items</span>
+            <span class="text-[0.75rem] text-ink-muted font-mono self-start sm:self-auto">@AppState.Documents.Count items</span>
         </div>
 
         @if (AppState.Documents.Count == 0)
         {
-            <div class="border border-line rounded-xl bg-surface/50 p-12 text-center flex flex-col items-center justify-center">
+            <div class="border border-line rounded-xl bg-surface/50 p-8 sm:p-12 text-center flex flex-col items-center justify-center">
                 <svg class="w-8 h-8 text-ink-muted mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
@@ -55,11 +55,11 @@
         else
         {
             <!-- Reviewers Notebook Card Grid -->
-            <div class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4 sm:gap-5">
                 @foreach (var doc in AppState.Documents)
                 {
-                    <div class="bg-surface border border-line rounded-xl overflow-hidden cursor-pointer transition-all hover:border-line-strong flex flex-col relative group" @onclick="() => AppState.SelectDocument(doc.Id)">
-                        <button class="opacity-0 group-hover:opacity-100 absolute top-2 right-2 bg-black/60 backdrop-blur-sm border border-white/20 text-white hover:bg-danger rounded-md p-1.5 cursor-pointer transition-all z-10" @onclick:stopPropagation="true" @onclick="() => AppState.MoveToTrash(doc.Id)" title="Delete document">
+                    <div class="bg-surface border border-line rounded-xl overflow-hidden cursor-pointer transition-all hover:border-accent-border hover:shadow-card-hover flex flex-col relative group" @onclick="() => AppState.SelectDocument(doc.Id)">
+                        <button class="opacity-100 sm:opacity-0 group-hover:opacity-100 absolute top-2 right-2 bg-black/75 backdrop-blur-sm border border-line text-white hover:bg-danger hover:border-danger rounded-md p-1.5 cursor-pointer transition-all z-10" @onclick:stopPropagation="true" @onclick="() => AppState.MoveToTrash(doc.Id)" title="Delete document">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
                             </svg>
@@ -85,41 +85,41 @@ else if (AppState.ActiveView == "workspace")
 {
     <!-- WORKSPACE / CONCEPT GRAPH & REVIEWER CHAT -->
     <div class="flex h-full w-full overflow-hidden relative">
-        <div class="flex-1 flex flex-col h-full relative canvas-bg overflow-hidden">
+        <div class="flex-1 flex flex-col h-full relative canvas-bg overflow-hidden min-w-0">
             <!-- Top Floating Workspace Bar -->
-            <div class="absolute top-4 left-5 right-5 h-[48px] bg-surface/90 backdrop-blur-md border border-line rounded-lg flex items-center justify-between px-3.5 z-20">
-                <div class="flex items-center gap-2.5 text-[0.85rem] font-medium text-ink">
-                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md p-1.5 flex items-center justify-center cursor-pointer transition-colors" @onclick='() => AppState.SetView("dashboard")' title="Back to Documents">
+            <div class="absolute top-2.5 sm:top-4 left-2.5 sm:left-5 right-2.5 sm:right-5 min-h-[48px] py-1.5 sm:py-0 bg-surface/95 backdrop-blur-md border border-line rounded-xl sm:rounded-lg flex flex-wrap items-center justify-between gap-2 px-3 sm:px-3.5 z-20 shadow-md">
+                <div class="flex items-center gap-2 text-[0.85rem] font-medium text-ink min-w-0 flex-1 sm:flex-initial">
+                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md p-1.5 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0" @onclick='() => AppState.SetView("dashboard")' title="Back to Documents">
                         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="15 18 9 12 15 6"/>
                         </svg>
                     </button>
-                    <span class="max-w-[340px] overflow-hidden text-ellipsis whitespace-nowrap text-ink">
+                    <span class="max-w-[160px] sm:max-w-[260px] md:max-w-[340px] truncate text-ink font-semibold">
                         @(AppState.SelectedDocument?.Filename ?? "Document Workspace")
                     </span>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md px-2.5 py-1 text-[0.785rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors" @onclick="() => isSourcesPanelOpen = !isSourcesPanelOpen" title="View Sources">
-                        <svg class="w-3.5 h-3.5 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md px-2 sm:px-2.5 py-1 text-[0.75rem] sm:text-[0.785rem] font-medium flex items-center gap-1 cursor-pointer transition-colors" @onclick="() => isSourcesPanelOpen = !isSourcesPanelOpen" title="View Sources">
+                        <svg class="w-3.5 h-3.5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                             <polyline points="14 2 14 8 20 8"/>
                         </svg>
-                        <span>Sources (@(AppState.SelectedDocument?.Passages.Count ?? 0))</span>
+                        <span class="hidden xs:inline">Sources</span> <span class="text-ink-muted">(@(AppState.SelectedDocument?.Passages.Count ?? 0))</span>
                     </button>
-                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md px-2.5 py-1 text-[0.785rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors" @onclick='() => AppState.SetView("quiz")'>
-                        <svg class="w-3.5 h-3.5 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md px-2 sm:px-2.5 py-1 text-[0.75rem] sm:text-[0.785rem] font-medium flex items-center gap-1 cursor-pointer transition-colors" @onclick='() => AppState.SetView("quiz")'>
+                        <svg class="w-3.5 h-3.5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"/><path d="9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
                         </svg>
                         <span>Quiz</span>
                     </button>
-                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md px-2.5 py-1 text-[0.785rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors" @onclick='() => AppState.SetView("flashcards")'>
-                        <svg class="w-3.5 h-3.5 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md px-2 sm:px-2.5 py-1 text-[0.75rem] sm:text-[0.785rem] font-medium flex items-center gap-1 cursor-pointer transition-colors" @onclick='() => AppState.SetView("flashcards")'>
+                        <svg class="w-3.5 h-3.5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
                         </svg>
                         <span>Cards</span>
                     </button>
-                    <button class="rounded-md px-3 py-1 text-[0.785rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors border @(isChatVisible ? "bg-accent text-[#0b0f17] border-accent" : "bg-surface-raised border-line text-ink-secondary hover:bg-surface-hover hover:text-ink")" @onclick="() => isChatVisible = !isChatVisible">
+                    <button class="rounded-md px-2.5 sm:px-3 py-1 text-[0.75rem] sm:text-[0.785rem] font-semibold flex items-center gap-1.5 cursor-pointer transition-colors border @(isChatVisible ? "bg-accent text-[#090a0f] border-accent" : "bg-surface-raised border-line text-ink-secondary hover:bg-surface-hover hover:text-ink")" @onclick="() => isChatVisible = !isChatVisible">
                         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>
                         </svg>
@@ -129,7 +129,7 @@ else if (AppState.ActiveView == "workspace")
             </div>
 
             <!-- Mind Map Floating Zoom & Reset Toolbar -->
-            <div class="absolute bottom-5 left-5 z-20 flex items-center gap-1 bg-surface border border-line rounded-lg p-1 select-none">
+            <div class="absolute bottom-3 sm:bottom-5 left-3 sm:left-5 z-20 flex items-center gap-1 bg-surface/95 backdrop-blur-md border border-line rounded-lg p-1 select-none shadow-md">
                 <button class="w-7 h-7 rounded bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink flex items-center justify-center border border-line transition-colors" @onclick="ZoomIn" title="Zoom in">
                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -147,7 +147,7 @@ else if (AppState.ActiveView == "workspace")
             </div>
 
             <!-- Mind Map Helper Tooltip Hint -->
-            <div class="absolute bottom-6 right-6 z-20 hidden lg:flex items-center gap-2 bg-[#11151f]/80 backdrop-blur-md border border-line/60 rounded-full px-3.5 py-1.5 text-[0.72rem] text-ink-muted select-none">
+            <div class="absolute bottom-4 right-4 z-20 hidden md:flex items-center gap-2 bg-surface/90 backdrop-blur-md border border-line rounded-full px-3.5 py-1.5 text-[0.72rem] text-ink-muted select-none">
                 <span>Drag nodes to organize • Drag canvas or scroll to pan & zoom</span>
             </div>
 
@@ -239,15 +239,20 @@ else if (AppState.ActiveView == "workspace")
         <!-- Concept Details Side Panel -->
         @if (AppState.SelectedDetail != null)
         {
-            <aside class="w-[360px] h-full bg-surface border-l border-line flex flex-col overflow-hidden z-30">
+            <aside class="fixed inset-y-0 right-0 z-40 w-full sm:w-[380px] lg:static lg:w-[360px] h-full bg-surface border-l border-line flex flex-col overflow-hidden shadow-2xl lg:shadow-none animate-fade-in">
                 <div class="px-5 py-4 border-b border-line flex items-start justify-between">
                     <div>
-                        <div class="text-[0.68rem] font-semibold uppercase tracking-wider text-ink-muted mb-1">Concept</div>
+                        <div class="text-[0.68rem] font-semibold uppercase tracking-wider text-accent mb-1">Concept</div>
                         <h2 class="text-[1.1rem] font-semibold text-ink leading-snug">@AppState.SelectedDetail.Label</h2>
                     </div>
+                    <button class="lg:hidden bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink p-1.5 rounded-lg border border-line flex items-center justify-center transition-colors cursor-pointer" @onclick="() => AppState.SelectedDetail = null" title="Close detail">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="6"/>
+                        </svg>
+                    </button>
                 </div>
 
-                <div class="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
+                <div class="flex-1 overflow-y-auto p-4 sm:p-5 flex flex-col gap-5">
                     <div>
                         <div class="text-[0.72rem] font-semibold uppercase tracking-wider text-ink-muted mb-2">Explanation</div>
                         <div class="bg-surface-raised border border-line rounded-lg p-3.5 text-[0.85rem] leading-relaxed text-ink-secondary chat-prose">
@@ -274,7 +279,7 @@ else if (AppState.ActiveView == "workspace")
                                 {
                                     <div class="bg-surface-raised border border-line rounded-lg p-3">
                                         <div class="flex items-center justify-between text-[0.7rem] text-ink-muted mb-2 pb-1.5 border-b border-line/60">
-                                            <span class="font-mono">Citation #@(srcIndex++)</span>
+                                            <span class="font-mono text-accent">Citation #@(srcIndex++)</span>
                                             <span class="font-mono text-ink-secondary">Page @src.PageNumber</span>
                                         </div>
 
@@ -293,7 +298,7 @@ else if (AppState.ActiveView == "workspace")
         <!-- Chat Drawer -->
         @if (isChatVisible)
         {
-            <aside class="w-[380px] h-full bg-surface border-l border-line flex flex-col z-30">
+            <aside class="fixed inset-y-0 right-0 z-40 w-full sm:w-[400px] lg:static lg:w-[380px] h-full bg-surface border-l border-line flex flex-col shadow-2xl lg:shadow-none animate-fade-in">
                 <div class="px-5 py-4 border-b border-line flex items-center justify-between">
                     <div>
                         <h2 class="text-[1rem] font-semibold text-ink">Reviewer Chat</h2>
@@ -314,7 +319,7 @@ else if (AppState.ActiveView == "workspace")
                             <div class="text-[0.675rem] font-medium mb-1 px-1 @(isUser ? "text-right text-ink-muted" : "text-ink-secondary")">
                                 @(isUser ? "You" : "Reviewer")
                             </div>
-                            <div class="@(isUser ? "bg-[#252e42] text-white rounded-lg px-3.5 py-2.5 text-[0.85rem] leading-relaxed" : "bg-surface-raised border border-line text-ink rounded-lg px-3.5 py-2.5 text-[0.85rem] leading-relaxed")">
+                            <div class="@(isUser ? "bg-accent/15 border border-accent/30 text-ink rounded-lg px-3.5 py-2.5 text-[0.85rem] leading-relaxed" : "bg-surface-raised border border-line text-ink rounded-lg px-3.5 py-2.5 text-[0.85rem] leading-relaxed")">
                                 @if (isUser)
                                 {
                                     <div class="whitespace-pre-wrap">@msg.Content</div>
@@ -331,7 +336,7 @@ else if (AppState.ActiveView == "workspace")
                                     <div class="flex flex-wrap gap-1.5 mt-2.5 pt-2 border-t border-line/60">
                                         @foreach (var c in msg.Citations)
                                         {
-                                            <div class="inline-flex items-center gap-1 bg-surface border border-line rounded px-2 py-0.5 text-[0.68rem] text-ink-muted font-mono" title="@c.Excerpt">
+                                            <div class="inline-flex items-center gap-1 bg-surface border border-line rounded px-2 py-0.5 text-[0.68rem] text-accent font-mono" title="@c.Excerpt">
                                                 <span>p. @c.PageNumber</span>
                                             </div>
                                         }
@@ -360,7 +365,7 @@ else if (AppState.ActiveView == "workspace")
                 <div class="p-3 border-t border-line bg-surface">
                     <form @onsubmit="SendMessage" class="flex items-center gap-2 bg-canvas border border-line rounded-lg px-2.5 py-1 focus-within:border-accent transition-all">
                         <input type="text" class="flex-1 bg-transparent border-none outline-none text-ink text-[0.85rem] py-1.5 px-1 placeholder:text-ink-muted" placeholder="Ask about this document..." @bind="chatInputText" />
-                        <button type="submit" class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-md px-2.5 py-1 text-[0.8rem] font-medium cursor-pointer transition-colors" title="Send message">
+                        <button type="submit" class="bg-accent hover:bg-accent-hover text-[#090a0f] border-none rounded-md px-3 py-1.5 text-[0.8rem] font-semibold cursor-pointer transition-colors" title="Send message">
                             Send
                         </button>
                     </form>
@@ -371,7 +376,7 @@ else if (AppState.ActiveView == "workspace")
         <!-- Source Management Drawer (NotebookLM Source Panel) -->
         @if (isSourcesPanelOpen && AppState.SelectedDocument != null)
         {
-            <aside class="w-[380px] h-full bg-surface/95 backdrop-blur-md border-l border-line flex flex-col z-30 animate-fade-in shadow-card">
+            <aside class="fixed inset-y-0 right-0 z-40 w-full sm:w-[400px] lg:static lg:w-[380px] h-full bg-surface/95 backdrop-blur-md border-l border-line flex flex-col shadow-2xl lg:shadow-none animate-fade-in">
                 <div class="px-5 pt-5 pb-4 border-b border-line flex items-center justify-between">
                     <div>
                         <div class="flex items-center gap-2 mb-1">
@@ -413,18 +418,18 @@ else if (AppState.ActiveView == "workspace")
 else if (AppState.ActiveView == "library")
 {
     <!-- LIBRARY VIEW -->
-    <div class="flex-1 overflow-y-auto px-14 py-9">
-        <div class="mb-8">
-            <h1 class="text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Library Collections</h1>
-            <p class="text-ink-secondary text-[0.9rem]">Grouped projects and categorized study materials.</p>
+    <div class="flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8 lg:px-14 lg:py-9">
+        <div class="mb-6 sm:mb-8">
+            <h1 class="text-2xl sm:text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Library Collections</h1>
+            <p class="text-ink-secondary text-sm sm:text-[0.9rem]">Grouped projects and categorized study materials.</p>
         </div>
 
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-6 mb-12">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4 sm:gap-6 mb-8 sm:mb-12">
             @foreach (var folder in AppState.Folders)
             {
-                <div class="bg-surface border border-line rounded-[18px] p-6 shadow-card hover:border-line-strong transition-all cursor-pointer" @onclick='() => AppState.SetView("dashboard")'>
+                <div class="bg-surface border border-line rounded-[18px] p-5 sm:p-6 shadow-card hover:border-accent-border hover:shadow-card-hover transition-all cursor-pointer" @onclick='() => AppState.SetView("dashboard")'>
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-surface-raised border border-line flex items-center justify-center text-accent flex-shrink-0">
+                        <div class="w-10 h-10 rounded-xl bg-surface-raised border border-accent-border flex items-center justify-center text-accent flex-shrink-0">
                             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
                             </svg>
@@ -438,18 +443,18 @@ else if (AppState.ActiveView == "library")
             }
         </div>
 
-        <h2 class="text-[1.25rem] font-bold text-ink mb-4">All Documents</h2>
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(215px,1fr))] gap-[1.85rem]">
+        <h2 class="text-lg sm:text-[1.25rem] font-bold text-ink mb-4">All Documents</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(215px,1fr))] gap-4 sm:gap-6">
             @foreach (var doc in AppState.Documents)
             {
                 <div class="bg-surface border border-line rounded-[14px] overflow-hidden cursor-pointer transition-all duration-200 flex flex-col relative shadow-card hover:-translate-y-1 hover:border-accent-border hover:shadow-card-hover group" @onclick="() => AppState.SelectDocument(doc.Id)">
-                    <div class="h-[148px] w-full relative overflow-hidden bg-[#0f1219]">
+                    <div class="h-[140px] sm:h-[148px] w-full relative overflow-hidden bg-surface-raised">
                         <img src="@(doc.CoverUrl ?? "assets/notebook-covers/cover-01.jpg")" alt="Cover" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                        <div class="absolute inset-0 bg-gradient-to-b from-black/5 to-[#0b0f17]/75"></div>
+                        <div class="absolute inset-0 bg-gradient-to-b from-black/5 to-black/75"></div>
                     </div>
                     <div class="p-4 flex flex-col flex-1">
                         <div class="text-[0.885rem] font-semibold text-ink leading-snug mb-1.5 line-clamp-2">@doc.Filename</div>
-                        <div class="text-[0.725rem] text-ink-muted flex items-center justify-between mt-auto pt-2.5 border-t border-white/5">
+                        <div class="text-[0.725rem] text-ink-muted flex items-center justify-between mt-auto pt-2.5 border-t border-line/60">
                             <span>@doc.ChunkCount passages</span>
                             <span>@doc.UploadedAt.ToString("MMM d")</span>
                         </div>
@@ -462,9 +467,9 @@ else if (AppState.ActiveView == "library")
 else if (AppState.ActiveView == "quiz")
 {
     <!-- QUIZ STUDY MODE -->
-    <div class="flex-1 overflow-y-auto px-14 py-10 max-w-[860px] mx-auto w-full">
-        <div class="flex items-center justify-between mb-6">
-            <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-lg px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer transition-all" @onclick='() => AppState.SetView("workspace")'>
+    <div class="flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8 lg:px-14 lg:py-10 max-w-[860px] mx-auto w-full">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-accent-border hover:bg-surface-hover rounded-lg px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer transition-all" @onclick='() => AppState.SetView("workspace")'>
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="15 18 9 12 15 6"/>
                 </svg>
@@ -473,7 +478,7 @@ else if (AppState.ActiveView == "quiz")
 
             @if (AppState.SelectedDocument != null)
             {
-                <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-3.5 py-1.5 text-[0.8rem] font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm disabled:opacity-50" @onclick="GenerateQuiz" disabled="@AppState.IsAiBusy">
+                <button class="bg-accent hover:bg-accent-hover text-[#090a0f] border-none rounded-lg px-3.5 py-1.5 text-[0.8rem] font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm disabled:opacity-50" @onclick="GenerateQuiz" disabled="@AppState.IsAiBusy">
                     @if (AppState.IsAiBusy)
                     {
                         <svg class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -493,21 +498,21 @@ else if (AppState.ActiveView == "quiz")
             }
         </div>
 
-        <div class="mb-8">
+        <div class="mb-6 sm:mb-8">
             <div class="flex items-center gap-2 mb-1">
                 <span class="w-2 h-2 rounded-full bg-accent"></span>
-                <span class="text-[0.72rem] font-bold uppercase tracking-wider text-accent font-mono">
+                <span class="text-[0.72rem] font-bold uppercase tracking-wider text-accent font-mono truncate">
                     @(AppState.SelectedDocument?.Filename ?? "Document Quiz")
                 </span>
             </div>
-            <h1 class="text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Interactive Knowledge Assessment</h1>
-            <p class="text-ink-secondary text-[0.9rem]">Multiple-choice quiz strictly grounded in the document text with direct citations.</p>
+            <h1 class="text-2xl sm:text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Interactive Knowledge Assessment</h1>
+            <p class="text-ink-secondary text-sm sm:text-[0.9rem]">Multiple-choice quiz strictly grounded in the document text with direct citations.</p>
         </div>
 
         @if (AppState.SampleQuiz == null || AppState.SampleQuiz.Count == 0)
         {
-            <div class="border border-line rounded-2xl bg-surface p-12 text-center flex flex-col items-center justify-center">
-                <div class="w-12 h-12 rounded-xl bg-surface-raised border border-line flex items-center justify-center text-accent mb-4">
+            <div class="border border-line rounded-2xl bg-surface p-6 sm:p-12 text-center flex flex-col items-center justify-center">
+                <div class="w-12 h-12 rounded-xl bg-surface-raised border border-accent-border flex items-center justify-center text-accent mb-4">
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/><path d="9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
                     </svg>
@@ -516,7 +521,7 @@ else if (AppState.ActiveView == "quiz")
                 <p class="text-ink-secondary text-[0.85rem] max-w-md mb-6 leading-relaxed">
                     Generate an AI quiz from the passages of <strong class="text-ink">@(AppState.SelectedDocument?.Filename ?? "this document")</strong> to test your understanding of key concepts.
                 </p>
-                <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-5 py-2.5 text-[0.875rem] font-semibold cursor-pointer transition-colors flex items-center gap-2" @onclick="GenerateQuiz" disabled="@(AppState.SelectedDocument == null || AppState.IsAiBusy)">
+                <button class="bg-accent hover:bg-accent-hover text-[#090a0f] border-none rounded-lg px-5 py-2.5 text-[0.875rem] font-semibold cursor-pointer transition-colors flex items-center gap-2" @onclick="GenerateQuiz" disabled="@(AppState.SelectedDocument == null || AppState.IsAiBusy)">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
                     </svg>
@@ -532,12 +537,12 @@ else if (AppState.ActiveView == "quiz")
                 var item = AppState.SampleQuiz[qIndex];
                 var selectedAns = quizSelections.ContainsKey(qIndex) ? quizSelections[qIndex] : (int?)null;
 
-                <div class="bg-surface border border-line rounded-[18px] p-8 shadow-card mb-6">
-                    <div class="flex justify-between items-center mb-4">
+                <div class="bg-surface border border-line rounded-[18px] p-5 sm:p-8 shadow-card mb-5 sm:mb-6">
+                    <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
                         <span class="text-[0.75rem] font-bold text-accent uppercase tracking-wider font-mono">Question @(qIndex + 1) of @AppState.SampleQuiz.Count</span>
-                        <span class="text-[0.75rem] text-ink-muted bg-surface-raised px-2.5 py-1 rounded-md border border-line font-mono">Citation: @item.Citation</span>
+                        <span class="text-[0.72rem] text-ink-muted bg-surface-raised px-2.5 py-1 rounded-md border border-line font-mono">Citation: @item.Citation</span>
                     </div>
-                    <h3 class="text-[1.1rem] font-semibold text-ink mb-5 leading-snug">@item.Question</h3>
+                    <h3 class="text-base sm:text-[1.1rem] font-semibold text-ink mb-4 sm:mb-5 leading-snug">@item.Question</h3>
 
                     @for (int o = 0; o < item.Options.Count; o++)
                     {
@@ -560,18 +565,18 @@ else if (AppState.ActiveView == "quiz")
                             buttonClass = "border-accent bg-accent/15 text-accent font-semibold";
                         }
 
-                        <button class="flex items-center w-full px-4 py-3.5 rounded-xl border text-[0.875rem] text-left cursor-pointer mb-2.5 transition-all @buttonClass" @onclick="() => quizSelections[qIndex] = optIndex">
-                            <span class="w-6 font-bold text-ink-muted">@((char)('A' + optIndex)).</span>
+                        <button class="flex items-center w-full px-3.5 sm:px-4 py-3 rounded-xl border text-[0.875rem] text-left cursor-pointer mb-2.5 transition-all @buttonClass" @onclick="() => quizSelections[qIndex] = optIndex">
+                            <span class="w-6 font-bold text-ink-muted flex-shrink-0">@((char)('A' + optIndex)).</span>
                             <span class="flex-1">@item.Options[optIndex]</span>
                             @if (hasSubmittedQuiz && isCorrect)
                             {
-                                <svg class="w-4 h-4 text-emerald-400 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <svg class="w-4 h-4 text-emerald-400 ml-2 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                     <polyline points="20 6 9 17 4 12"/>
                                 </svg>
                             }
                             else if (hasSubmittedQuiz && isWrong)
                             {
-                                <svg class="w-4 h-4 text-rose-400 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <svg class="w-4 h-4 text-rose-400 ml-2 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="6"/>
                                 </svg>
                             }
@@ -587,17 +592,17 @@ else if (AppState.ActiveView == "quiz")
                 </div>
             }
 
-            <div class="flex items-center gap-4 mt-6">
+            <div class="flex flex-wrap items-center gap-4 mt-6">
                 @if (!hasSubmittedQuiz)
                 {
-                    <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-6 py-2.5 text-[0.95rem] font-semibold cursor-pointer transition-colors shadow-sm" @onclick="() => hasSubmittedQuiz = true">
+                    <button class="bg-accent hover:bg-accent-hover text-[#090a0f] border-none rounded-lg px-6 py-2.5 text-[0.95rem] font-semibold cursor-pointer transition-colors shadow-sm" @onclick="() => hasSubmittedQuiz = true">
                         Submit Assessment
                     </button>
                 }
                 else
                 {
                     var correctCount = AppState.SampleQuiz.Count(q => quizSelections.ContainsKey(AppState.SampleQuiz.IndexOf(q)) && quizSelections[AppState.SampleQuiz.IndexOf(q)] == q.AnswerIndex);
-                    <div class="flex items-center gap-4">
+                    <div class="flex flex-wrap items-center gap-4">
                         <span class="text-[1.05rem] font-bold text-ink bg-surface-raised border border-line px-4 py-2 rounded-lg">
                             Score: @correctCount / @AppState.SampleQuiz.Count (@((int)((double)correctCount / AppState.SampleQuiz.Count * 100))%)
                         </span>
@@ -613,9 +618,9 @@ else if (AppState.ActiveView == "quiz")
 else if (AppState.ActiveView == "flashcards")
 {
     <!-- FLASHCARDS STUDY MODE -->
-    <div class="flex-1 overflow-y-auto px-14 py-10 max-w-[860px] mx-auto w-full">
-        <div class="flex items-center justify-between mb-6">
-            <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-lg px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer transition-all" @onclick='() => AppState.SetView("workspace")'>
+    <div class="flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8 lg:px-14 lg:py-10 max-w-[860px] mx-auto w-full">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-accent-border hover:bg-surface-hover rounded-lg px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer transition-all" @onclick='() => AppState.SetView("workspace")'>
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="15 18 9 12 15 6"/>
                 </svg>
@@ -624,7 +629,7 @@ else if (AppState.ActiveView == "flashcards")
 
             @if (AppState.SelectedDocument != null)
             {
-                <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-3.5 py-1.5 text-[0.8rem] font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm disabled:opacity-50" @onclick="GenerateCards" disabled="@AppState.IsAiBusy">
+                <button class="bg-accent hover:bg-accent-hover text-[#090a0f] border-none rounded-lg px-3.5 py-1.5 text-[0.8rem] font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm disabled:opacity-50" @onclick="GenerateCards" disabled="@AppState.IsAiBusy">
                     @if (AppState.IsAiBusy)
                     {
                         <svg class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -644,23 +649,23 @@ else if (AppState.ActiveView == "flashcards")
             }
         </div>
 
-        <div class="mb-8">
+        <div class="mb-6 sm:mb-8">
             <div class="flex items-center gap-2 mb-1">
                 <span class="w-2 h-2 rounded-full bg-accent"></span>
-                <span class="text-[0.72rem] font-bold uppercase tracking-wider text-accent font-mono">
+                <span class="text-[0.72rem] font-bold uppercase tracking-wider text-accent font-mono truncate">
                     @(AppState.SelectedDocument?.Filename ?? "Document Flashcards")
                 </span>
             </div>
-            <h1 class="text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Interactive Concept Flashcards</h1>
-            <p class="text-ink-secondary text-[0.9rem]">
+            <h1 class="text-2xl sm:text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Interactive Concept Flashcards</h1>
+            <p class="text-ink-secondary text-sm sm:text-[0.9rem]">
                 @(AppState.SampleFlashcards.Count > 0 ? $"Card {currentCardIndex + 1} of {AppState.SampleFlashcards.Count} • Click anywhere to flip" : "Review key definitions and core topics.")
             </p>
         </div>
 
         @if (AppState.SampleFlashcards == null || AppState.SampleFlashcards.Count == 0)
         {
-            <div class="border border-line rounded-2xl bg-surface p-12 text-center flex flex-col items-center justify-center">
-                <div class="w-12 h-12 rounded-xl bg-surface-raised border border-line flex items-center justify-center text-accent mb-4">
+            <div class="border border-line rounded-2xl bg-surface p-6 sm:p-12 text-center flex flex-col items-center justify-center">
+                <div class="w-12 h-12 rounded-xl bg-surface-raised border border-accent-border flex items-center justify-center text-accent mb-4">
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
                     </svg>
@@ -669,7 +674,7 @@ else if (AppState.ActiveView == "flashcards")
                 <p class="text-ink-secondary text-[0.85rem] max-w-md mb-6 leading-relaxed">
                     Generate an interactive deck from <strong class="text-ink">@(AppState.SelectedDocument?.Filename ?? "this document")</strong> to memorize key terms and concepts.
                 </p>
-                <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-5 py-2.5 text-[0.875rem] font-semibold cursor-pointer transition-colors flex items-center gap-2" @onclick="GenerateCards" disabled="@(AppState.SelectedDocument == null || AppState.IsAiBusy)">
+                <button class="bg-accent hover:bg-accent-hover text-[#090a0f] border-none rounded-lg px-5 py-2.5 text-[0.875rem] font-semibold cursor-pointer transition-colors flex items-center gap-2" @onclick="GenerateCards" disabled="@(AppState.SelectedDocument == null || AppState.IsAiBusy)">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
                     </svg>
@@ -682,20 +687,20 @@ else if (AppState.ActiveView == "flashcards")
             if (currentCardIndex >= AppState.SampleFlashcards.Count) currentCardIndex = 0;
             var card = AppState.SampleFlashcards[currentCardIndex];
 
-            <div class="min-h-[260px] bg-surface-raised border border-line hover:border-accent hover:-translate-y-0.5 rounded-2xl flex flex-col items-center justify-center text-center p-10 cursor-pointer transition-all select-none shadow-card relative group" @onclick="() => isCardFlipped = !isCardFlipped">
+            <div class="min-h-[240px] sm:min-h-[260px] bg-surface-raised border border-line hover:border-accent hover:-translate-y-0.5 rounded-2xl flex flex-col items-center justify-center text-center p-6 sm:p-10 cursor-pointer transition-all select-none shadow-card relative group" @onclick="() => isCardFlipped = !isCardFlipped">
                 <div class="absolute top-4 right-4 flex items-center gap-2">
-                    <span class="text-[0.72rem] font-mono text-ink-muted bg-surface px-2.5 py-1 rounded-md border border-line">
+                    <span class="text-[0.7rem] sm:text-[0.72rem] font-mono text-ink-muted bg-surface px-2 sm:px-2.5 py-1 rounded-md border border-line">
                         Citation: @card.Citation
                     </span>
-                    <span class="text-[0.72rem] text-accent font-medium bg-accent/10 border border-accent/20 px-2 py-0.5 rounded">
+                    <span class="text-[0.7rem] sm:text-[0.72rem] text-accent font-medium bg-accent/10 border border-accent/20 px-2 py-0.5 rounded">
                         @(isCardFlipped ? "Answer" : "Question")
                     </span>
                 </div>
 
-                <div class="text-[0.75rem] font-bold uppercase tracking-wider text-accent mb-4">
+                <div class="text-[0.72rem] sm:text-[0.75rem] font-bold uppercase tracking-wider text-accent mb-4 mt-6 sm:mt-0">
                     @(isCardFlipped ? "Explanation / Verified Answer" : "Concept Prompt")
                 </div>
-                <div class="text-[1.25rem] font-semibold text-ink max-w-[580px] leading-relaxed">
+                <div class="text-lg sm:text-[1.25rem] font-semibold text-ink max-w-[580px] leading-relaxed">
                     @(isCardFlipped ? card.Back : card.Front)
                 </div>
                 <div class="mt-6 text-[0.75rem] text-ink-muted">
@@ -705,10 +710,10 @@ else if (AppState.ActiveView == "flashcards")
 
             <div class="flex items-center justify-between mt-6">
                 <div class="flex items-center gap-2">
-                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-lg px-4 py-2 text-[0.85rem] font-medium cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed" @onclick="PrevCard" disabled="@(currentCardIndex == 0)">
+                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-lg px-3.5 sm:px-4 py-2 text-[0.85rem] font-medium cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed" @onclick="PrevCard" disabled="@(currentCardIndex == 0)">
                         Previous
                     </button>
-                    <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-5 py-2 text-[0.85rem] font-semibold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed" @onclick="NextCard" disabled="@(currentCardIndex == AppState.SampleFlashcards.Count - 1)">
+                    <button class="bg-accent hover:bg-accent-hover text-[#090a0f] border-none rounded-lg px-4 sm:px-5 py-2 text-[0.85rem] font-semibold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed" @onclick="NextCard" disabled="@(currentCardIndex == AppState.SampleFlashcards.Count - 1)">
                         Next Card
                     </button>
                 </div>
@@ -723,29 +728,29 @@ else if (AppState.ActiveView == "flashcards")
 else if (AppState.ActiveView == "essay")
 {
     <!-- ESSAY EVALUATOR -->
-    <div class="flex-1 overflow-y-auto px-14 py-10 max-w-[860px] mx-auto w-full">
-        <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-lg px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer transition-all mb-6" @onclick='() => AppState.SetView("dashboard")'>
+    <div class="flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8 lg:px-14 lg:py-10 max-w-[860px] mx-auto w-full">
+        <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-accent-border hover:bg-surface-hover rounded-lg px-3 py-1.5 text-[0.8rem] font-medium flex items-center gap-1.5 cursor-pointer transition-all mb-6" @onclick='() => AppState.SetView("dashboard")'>
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="15 18 9 12 15 6"/>
             </svg>
             <span>Back to Dashboard</span>
         </button>
 
-        <div class="mb-8">
-            <h1 class="text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Essay Synthesizer</h1>
-            <p class="text-ink-secondary text-[0.9rem]">@AppState.SampleEssay.Title</p>
+        <div class="mb-6 sm:mb-8">
+            <h1 class="text-2xl sm:text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Essay Synthesizer</h1>
+            <p class="text-ink-secondary text-sm sm:text-[0.9rem]">@AppState.SampleEssay.Title</p>
         </div>
 
-        <div class="bg-surface border border-line rounded-[18px] p-8 shadow-card">
+        <div class="bg-surface border border-line rounded-[18px] p-5 sm:p-8 shadow-card">
             <div class="text-[0.72rem] font-bold uppercase tracking-wider text-ink-muted mb-2 flex items-center gap-1.5">Prompt & Rubric Criteria</div>
-            <p class="text-[0.95rem] text-ink leading-relaxed mb-5">
+            <p class="text-sm sm:text-[0.95rem] text-ink leading-relaxed mb-5">
                 @AppState.SampleEssay.Prompt
             </p>
 
-            <textarea class="w-full h-[140px] bg-canvas border border-line rounded-xl p-4 text-ink font-sans resize-y outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all text-sm leading-relaxed" @bind="AppState.SampleEssay.Submission"></textarea>
+            <textarea class="w-full h-[140px] sm:h-[160px] bg-canvas border border-line rounded-xl p-4 text-ink font-sans resize-y outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all text-sm leading-relaxed" @bind="AppState.SampleEssay.Submission"></textarea>
 
-            <div class="flex justify-between items-center mt-5">
-                <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-5 py-2.5 text-[0.875rem] font-semibold cursor-pointer transition-colors" @onclick="EvaluateEssay">Run AI Grading & Feedback</button>
+            <div class="flex flex-wrap justify-between items-center gap-3 mt-5">
+                <button class="bg-accent hover:bg-accent-hover text-[#090a0f] border-none rounded-lg px-5 py-2.5 text-[0.875rem] font-semibold cursor-pointer transition-colors" @onclick="EvaluateEssay">Run AI Grading & Feedback</button>
                 @if (AppState.SampleEssay.Score != null)
                 {
                     <span class="font-bold text-success text-[1.1rem]">Score: @AppState.SampleEssay.Score / 100</span>
@@ -754,7 +759,7 @@ else if (AppState.ActiveView == "essay")
 
             @if (!string.IsNullOrEmpty(AppState.SampleEssay.Feedback))
             {
-                <div class="bg-black/25 border-l-[3px] border-accent rounded-r-[10px] p-4 text-[0.875rem] leading-relaxed text-ink-secondary mt-5 chat-prose">
+                <div class="bg-black/30 border-l-[3px] border-accent rounded-r-[10px] p-4 text-[0.875rem] leading-relaxed text-ink-secondary mt-5 chat-prose">
                     <strong class="text-ink">AI Feedback:</strong>
                     <div class="mt-2">
                         @TextFormatter.ToFormattedHtml(AppState.SampleEssay.Feedback)
@@ -767,15 +772,15 @@ else if (AppState.ActiveView == "essay")
 else if (AppState.ActiveView == "trash")
 {
     <!-- TRASH VIEW -->
-    <div class="flex-1 overflow-y-auto px-14 py-9">
-        <div class="mb-8">
-            <h1 class="text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Trash</h1>
-            <p class="text-ink-secondary text-[0.9rem]">Recover or permanently purge archived reviewers.</p>
+    <div class="flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8 lg:px-14 lg:py-9">
+        <div class="mb-6 sm:mb-8">
+            <h1 class="text-2xl sm:text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Trash</h1>
+            <p class="text-ink-secondary text-sm sm:text-[0.9rem]">Recover or permanently purge archived reviewers.</p>
         </div>
 
         @if (!AppState.TrashedDocuments.Any())
         {
-            <div class="text-center py-16 px-8 bg-surface border border-dashed border-line rounded-[18px]">
+            <div class="text-center py-12 sm:py-16 px-6 sm:px-8 bg-surface border border-dashed border-line rounded-[18px]">
                 <svg class="w-10 h-10 text-ink-muted mx-auto mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
                 </svg>
@@ -788,12 +793,12 @@ else if (AppState.ActiveView == "trash")
             <div class="flex flex-col gap-3">
                 @foreach (var doc in AppState.TrashedDocuments)
                 {
-                    <div class="flex items-center justify-between p-4 px-5 bg-surface border border-line rounded-[14px]">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 px-5 bg-surface border border-line rounded-[14px] gap-3">
                         <div>
                             <div class="font-semibold text-ink">@doc.Filename</div>
                             <div class="text-[0.75rem] text-ink-muted">@doc.ChunkCount passages</div>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 self-end sm:self-auto">
                             <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:border-line-strong hover:bg-surface-hover rounded-lg px-3 py-1.5 text-[0.8rem] font-medium cursor-pointer transition-all" @onclick="() => AppState.RestoreFromTrash(doc.Id)">Restore</button>
                             <button class="bg-surface-raised border border-line text-danger hover:border-danger hover:bg-danger-soft rounded-lg px-3 py-1.5 text-[0.8rem] font-medium cursor-pointer transition-all" @onclick="() => AppState.DeleteForever(doc.Id)">Delete Forever</button>
                         </div>
@@ -806,35 +811,35 @@ else if (AppState.ActiveView == "trash")
 else if (AppState.ActiveView == "settings")
 {
     <!-- SETTINGS VIEW -->
-    <div class="flex-1 overflow-y-auto px-14 py-10 max-w-[860px] mx-auto w-full">
-        <div class="mb-8">
-            <h1 class="text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Preferences & Settings</h1>
-            <p class="text-ink-secondary text-[0.9rem]">Manage appearance and keyboard shortcuts.</p>
+    <div class="flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8 lg:px-14 lg:py-10 max-w-[860px] mx-auto w-full">
+        <div class="mb-6 sm:mb-8">
+            <h1 class="text-2xl sm:text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Preferences & Settings</h1>
+            <p class="text-ink-secondary text-sm sm:text-[0.9rem]">Manage appearance and keyboard shortcuts.</p>
         </div>
 
-        <div class="bg-surface border border-line rounded-[18px] p-8 shadow-card mb-6">
-            <h3 class="text-[1.1rem] font-bold text-ink mb-4">Appearance & Theme</h3>
-            <div class="flex items-center justify-between">
+        <div class="bg-surface border border-line rounded-[18px] p-5 sm:p-8 shadow-card mb-6">
+            <h3 class="text-base sm:text-[1.1rem] font-bold text-ink mb-4">Appearance & Theme</h3>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <div class="font-semibold text-ink">Current Theme: <span class="capitalize text-accent">@AppState.Theme</span></div>
-                    <div class="text-[0.8rem] text-ink-muted">Switch between sleek dark mode and bright canvas mode.</div>
+                    <div class="font-semibold text-ink">Current Theme: <span class="capitalize text-accent font-bold">@AppState.Theme</span></div>
+                    <div class="text-[0.8rem] text-ink-muted">Switch between sleek black/white dark mode and bright clean light mode.</div>
                 </div>
-                <button class="bg-accent hover:bg-accent-hover text-[#0b0f17] border-none rounded-lg px-4 py-2 text-[0.85rem] font-semibold cursor-pointer transition-colors" @onclick="AppState.ToggleTheme">Toggle Theme</button>
+                <button class="bg-accent hover:bg-accent-hover text-[#090a0f] border-none rounded-lg px-4 py-2 text-[0.85rem] font-semibold cursor-pointer transition-colors self-start sm:self-auto" @onclick="AppState.ToggleTheme">Toggle Theme</button>
             </div>
         </div>
 
-        <div class="bg-surface border border-line rounded-[18px] p-8 shadow-card">
-            <h3 class="text-[1.1rem] font-bold text-ink mb-4">Keyboard Shortcuts</h3>
+        <div class="bg-surface border border-line rounded-[18px] p-5 sm:p-8 shadow-card">
+            <h3 class="text-base sm:text-[1.1rem] font-bold text-ink mb-4">Keyboard Shortcuts</h3>
             <div class="flex flex-col gap-3">
-                <div class="flex justify-between text-[0.85rem] border-b border-line pb-2 text-ink-secondary">
+                <div class="flex justify-between items-center text-[0.85rem] border-b border-line pb-2.5 text-ink-secondary">
                     <span>Open Command Palette</span>
                     <kbd class="text-[0.675rem] bg-canvas border border-line px-1.5 py-0.5 rounded-[5px] text-ink-muted">Ctrl+K</kbd>
                 </div>
-                <div class="flex justify-between text-[0.85rem] border-b border-line pb-2 text-ink-secondary">
+                <div class="flex justify-between items-center text-[0.85rem] border-b border-line pb-2.5 text-ink-secondary">
                     <span>Recent Discoveries</span>
                     <kbd class="text-[0.675rem] bg-canvas border border-line px-1.5 py-0.5 rounded-[5px] text-ink-muted">Ctrl+1</kbd>
                 </div>
-                <div class="flex justify-between text-[0.85rem] border-b border-line pb-2 text-ink-secondary">
+                <div class="flex justify-between items-center text-[0.85rem] border-b border-line pb-2.5 text-ink-secondary">
                     <span>Library Collections</span>
                     <kbd class="text-[0.675rem] bg-canvas border border-line px-1.5 py-0.5 rounded-[5px] text-ink-muted">Ctrl+2</kbd>
                 </div>

@@ -1,24 +1,64 @@
 @inherits LayoutComponentBase
 @inject AppStateService AppState
+@inject IJSRuntime JSRuntime
 @implements IDisposable
 
 <div class="flex h-screen w-screen bg-canvas overflow-hidden font-sans select-none" data-theme="@AppState.Theme">
     <NavMenu />
 
-    <main class="flex-1 flex flex-col h-full overflow-hidden bg-canvas">
-        @Body
+    <main class="flex-1 flex flex-col h-full overflow-hidden bg-canvas relative min-w-0">
+        <!-- Mobile Top Navigation Header -->
+        <header class="md:hidden h-14 bg-surface border-b border-line px-4 flex items-center justify-between flex-shrink-0 z-30">
+            <div class="flex items-center gap-3">
+                <button type="button" class="bg-surface-raised border border-line text-ink-secondary hover:text-ink p-2 rounded-lg flex items-center justify-center cursor-pointer transition-colors" @onclick="AppState.ToggleMobileMenu" aria-label="Open navigation menu">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+                <div class="flex items-center gap-2">
+                    <img src="assets/logo/conext-logo-256.webp" alt="Notepad AI" class="w-6 h-6 rounded-md object-cover" />
+                    <span class="text-sm font-bold text-ink tracking-tight">Notepad AI</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="button" class="bg-surface-raised border border-line text-ink-secondary hover:text-ink p-2 rounded-lg flex items-center justify-center cursor-pointer transition-colors" @onclick="AppState.OpenCommandPalette" title="Search">
+                    <svg class="w-4 h-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                    </svg>
+                </button>
+                <button type="button" class="bg-surface-raised border border-line text-ink-secondary hover:text-ink p-2 rounded-lg flex items-center justify-center cursor-pointer transition-colors" @onclick="AppState.ToggleTheme" title="Toggle Theme">
+                    @if (AppState.Theme == "dark")
+                    {
+                        <svg class="w-4 h-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                        </svg>
+                    }
+                    else
+                    {
+                        <svg class="w-4 h-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                        </svg>
+                    }
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+            @Body
+        </div>
     </main>
 
     @if (AppState.IsCommandPaletteOpen)
     {
-        <div class="fixed inset-0 bg-black/75 backdrop-blur-md z-[100] flex items-start justify-center pt-[12vh] animate-fade-in" @onclick="() => AppState.IsCommandPaletteOpen = false">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-start justify-center pt-[8vh] sm:pt-[12vh] px-3 animate-fade-in" @onclick="AppState.CloseCommandPalette">
             <div class="w-full max-w-[580px] bg-surface border border-line-strong rounded-2xl overflow-hidden shadow-palette" @onclick:stopPropagation="true">
                 <div class="flex items-center gap-3 px-5 py-4 border-b border-line">
                     <svg class="w-[18px] h-[18px] text-ink-muted flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
                     </svg>
-                    <input type="text" class="flex-1 bg-transparent border-none outline-none text-ink text-[0.975rem] placeholder:text-ink-muted" placeholder="Type a command or search reviewers..." autofocus @bind="searchQuery" @bind:event="oninput" />
-                    <span class="text-[0.75rem] text-ink-muted bg-canvas px-1.5 py-0.5 rounded border border-line">ESC</span>
+                    <input type="text" class="flex-1 bg-transparent border-none outline-none text-ink text-[0.975rem] placeholder:text-ink-muted" placeholder="Type a command or search reviewers..." autofocus @bind="searchQuery" @bind:event="oninput" @onkeydown="HandlePaletteInputKeyDown" />
+                    <button type="button" class="text-[0.75rem] text-ink-muted bg-canvas hover:text-ink px-1.5 py-0.5 rounded border border-line cursor-pointer" @onclick="AppState.CloseCommandPalette">ESC</button>
                 </div>
                 <div class="max-h-[340px] overflow-y-auto p-2 flex flex-col gap-1">
                     <div class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[10px] cursor-pointer transition-colors bg-surface-hover hover:bg-surface-hover" @onclick='() => ExecutePalette("dashboard")'>
@@ -81,9 +121,54 @@
 @code {
     private string searchQuery = string.Empty;
 
+    private DotNetObjectReference<MainLayout>? dotNetHelper;
+
     protected override void OnInitialized()
     {
         AppState.OnChange += StateHasChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            dotNetHelper = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("keyboardShortcuts.registerGlobalShortcuts", dotNetHelper);
+        }
+    }
+
+    [JSInvokable]
+    public void OnGlobalShortcut(string key)
+    {
+        if (key == "k")
+        {
+            AppState.ToggleCommandPalette();
+        }
+        else if (key == "Escape")
+        {
+            if (AppState.IsCommandPaletteOpen)
+            {
+                AppState.CloseCommandPalette();
+            }
+        }
+        else if (key == "1")
+        {
+            AppState.SetView("dashboard");
+            AppState.CloseCommandPalette();
+        }
+        else if (key == "2")
+        {
+            AppState.SetView("library");
+            AppState.CloseCommandPalette();
+        }
+    }
+
+    private void HandlePaletteInputKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            AppState.CloseCommandPalette();
+        }
     }
 
     private IEnumerable<DocumentItem> FilteredDocuments =>
@@ -94,17 +179,18 @@
     private void ExecutePalette(string view)
     {
         AppState.SetView(view);
-        AppState.IsCommandPaletteOpen = false;
+        AppState.CloseCommandPalette();
     }
 
     private void SelectDocFromPalette(int id)
     {
         AppState.SelectDocument(id);
-        AppState.IsCommandPaletteOpen = false;
+        AppState.CloseCommandPalette();
     }
 
     public void Dispose()
     {
         AppState.OnChange -= StateHasChanged;
+        dotNetHelper?.Dispose();
     }
 }

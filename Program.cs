@@ -11,7 +11,11 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddSingleton<OllamaService>(sp =>
 {
     var client = new HttpClient { Timeout = TimeSpan.FromSeconds(180) };
-    return new OllamaService(client, "http://127.0.0.1:11434", "gemma4:31b-cloud");
+    var nav = sp.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>();
+    var hostUri = new Uri(nav.BaseUri);
+    var host = string.IsNullOrWhiteSpace(hostUri.Host) ? "127.0.0.1" : hostUri.Host;
+    var ollamaUrl = $"http://{host}:11434";
+    return new OllamaService(client, ollamaUrl, "gemma4:31b-cloud");
 });
 builder.Services.AddSingleton<DocumentService>();
 builder.Services.AddSingleton<SqliteStorageService>();
