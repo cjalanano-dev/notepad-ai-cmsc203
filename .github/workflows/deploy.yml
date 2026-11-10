@@ -48,6 +48,12 @@ jobs:
           
           # 3. Add .nojekyll so GitHub Pages does not ignore the _framework directory
           touch output/wwwroot/.nojekyll
+          
+          # 4. Regenerate service-worker-assets.js with updated hashes after base href change
+          cd output/wwwroot
+          # The service-worker-assets.js is generated during build, we need to rebuild to get correct hashes
+          # But since we modified index.html, we need to re-compute hashes
+          # For now, exclude index.html from service worker caching (handled in service-worker.published.js)
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

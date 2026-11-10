@@ -23,7 +23,14 @@ async function onInstall(event) {
     const assetsRequests = self.assetsManifest.assets
         .filter(asset => offlineAssetsInclude.some(pattern => pattern.test(asset.url)))
         .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
-        .map(asset => new Request(asset.url, { integrity: asset.hash, cache: 'no-cache' }));
+        // Remove integrity checks for index.html to avoid SRI errors after base href rewrite
+        .map(asset => {
+            const requestInit = { cache: 'no-cache' };
+            if (asset.url !== 'index.html') {
+                requestInit.integrity = asset.hash;
+            }
+            return new Request(asset.url, requestInit);
+        });
     await caches.open(cacheName).then(cache => cache.addAll(assetsRequests));
 }
 
