@@ -18,6 +18,7 @@ public class AppStateService
     public bool IsSidebarCollapsed { get; set; } = false;
     public bool IsMobileMenuOpen { get; set; } = false;
     public bool IsCommandPaletteOpen { get; set; } = false;
+    public bool IsConceptModalOpen { get; set; } = false;
     public bool IsOriginalPreviewOpen { get; set; } = false;
     public bool IsDbLoaded { get; private set; } = false;
 
@@ -80,7 +81,7 @@ public class AppStateService
                 {
                     CurrentNodes = nodes;
                     CurrentEdges = edges;
-                    SelectNode(nodes[0].Id);
+                    SelectNode(nodes[0].Id, openModal: false);
                 }
 
                 SampleQuiz = await _sqliteService.GetQuizzesAsync(SelectedDocument.Id);
@@ -183,7 +184,7 @@ public class AppStateService
             {
                 CurrentNodes = nodes;
                 CurrentEdges = edges;
-                SelectNode(nodes[0].Id);
+                SelectNode(nodes[0].Id, openModal: false);
             }
             else if (SelectedDocument.Passages.Count > 0)
             {
@@ -209,7 +210,7 @@ public class AppStateService
         NotifyStateChanged();
     }
 
-    public void SelectNode(int nodeId)
+    public void SelectNode(int nodeId, bool openModal = true)
     {
         SelectedNode = CurrentNodes.FirstOrDefault(n => n.Id == nodeId);
         if (SelectedNode != null && SelectedDocument != null)
@@ -232,7 +233,18 @@ public class AppStateService
                 HasGeneratedExplanation = true,
                 Sources = linkedSources
             };
+            IsConceptModalOpen = openModal;
         }
+        else
+        {
+            IsConceptModalOpen = false;
+        }
+        NotifyStateChanged();
+    }
+
+    public void CloseConceptModal()
+    {
+        IsConceptModalOpen = false;
         NotifyStateChanged();
     }
 
@@ -297,7 +309,7 @@ public class AppStateService
 
             if (nodes.Count > 0)
             {
-                SelectNode(nodes[0].Id);
+                SelectNode(nodes[0].Id, openModal: false);
             }
         }
         catch (Exception ex)

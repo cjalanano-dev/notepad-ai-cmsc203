@@ -10,7 +10,7 @@ public class OllamaService
     private readonly string _baseUrl;
     private readonly string _defaultModel;
 
-    public OllamaService(HttpClient httpClient, string baseUrl = "http://127.0.0.1:11434", string defaultModel = "gemma4:31b-cloud")
+    public OllamaService(HttpClient httpClient, string baseUrl = "http://127.0.0.1:11434", string defaultModel = "qwen2.5:3b")
     {
         _httpClient = httpClient;
         _baseUrl = baseUrl.TrimEnd('/');

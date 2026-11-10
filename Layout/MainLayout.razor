@@ -146,7 +146,11 @@
         }
         else if (key == "Escape")
         {
-            if (AppState.IsCommandPaletteOpen)
+            if (AppState.IsConceptModalOpen)
+            {
+                AppState.CloseConceptModal();
+            }
+            else if (AppState.IsCommandPaletteOpen)
             {
                 AppState.CloseCommandPalette();
             }

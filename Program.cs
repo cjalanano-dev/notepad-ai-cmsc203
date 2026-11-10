@@ -15,7 +15,7 @@ builder.Services.AddSingleton<OllamaService>(sp =>
     var hostUri = new Uri(nav.BaseUri);
     var host = string.IsNullOrWhiteSpace(hostUri.Host) ? "127.0.0.1" : hostUri.Host;
     var ollamaUrl = $"http://{host}:11434";
-    return new OllamaService(client, ollamaUrl, "gemma4:31b-cloud");
+    return new OllamaService(client, ollamaUrl, "qwen2.5:3b");
 });
 builder.Services.AddSingleton<DocumentService>();
 builder.Services.AddSingleton<SqliteStorageService>();

@@ -33,7 +33,7 @@
 
 - **Frontend**: Blazor WebAssembly (.NET 10)
 - **Styling**: Tailwind CSS v3 with customized typography & frosted glass utilities
-- **Local AI Engine**: [Ollama](https://ollama.com/) (defaults to local models such as `gemma4:31b-cloud` or `llama3.2`)
+- **Local AI Engine**: [Ollama](https://ollama.com/) (defaults to local models such as `qwen2.5:3b` or `llama3.2`)
 - **Document Chunking & Vector Search**: In-memory vector embeddings and cosine similarity scoring for passage retrieval
 - **Mind Map Visualization**: Custom SVG graph engine with hardware-accelerated pointer event dragging and scale transformations
 
@@ -60,7 +60,7 @@ Start Ollama and pull your preferred model (configured by default in `Program.cs
 
 ```bash
 ollama serve
-ollama pull gemma4:31b-cloud
+ollama pull qwen2.5:3b
 # Or pull llama3.2 / mistral and update Program.cs accordingly
 ```
 
