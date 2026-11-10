@@ -109,7 +109,7 @@ else if (AppState.ActiveView == "workspace")
                     </button>
                     <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md px-2 sm:px-2.5 py-1 text-[0.75rem] sm:text-[0.785rem] font-medium flex items-center gap-1 cursor-pointer transition-colors" @onclick='() => AppState.SetView("quiz")'>
                         <svg class="w-3.5 h-3.5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/><path d="9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
+                            <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
                         </svg>
                         <span>Quiz</span>
                     </button>
@@ -531,7 +531,7 @@ else if (AppState.ActiveView == "quiz")
             <div class="border border-line rounded-2xl bg-surface p-6 sm:p-12 text-center flex flex-col items-center justify-center">
                 <div class="w-12 h-12 rounded-xl bg-surface-raised border border-accent-border flex items-center justify-center text-accent mb-4">
                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/><path d="9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
+                        <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
                     </svg>
                 </div>
                 <h3 class="text-[1.1rem] font-semibold text-ink mb-2">No Quiz Generated Yet</h3>
@@ -835,6 +835,44 @@ else if (AppState.ActiveView == "settings")
         </div>
 
         <div class="bg-surface border border-line rounded-[18px] p-5 sm:p-8 shadow-card mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-base sm:text-[1.1rem] font-bold text-ink">In-Browser AI Engine</h3>
+                    <div class="text-[0.8rem] text-ink-muted">Run 100% locally in your browser with WebGPU (No server or Ollama required).</div>
+                </div>
+                <span class="text-xs px-2.5 py-1 rounded-full font-mono bg-accent/15 text-accent border border-accent/30 font-semibold">
+                    Qwen2.5-0.5B-Instruct
+                </span>
+            </div>
+
+            <div class="p-4 rounded-xl bg-canvas border border-line mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-ink">Model Status</span>
+                    <span class="text-xs font-mono text-ink-secondary">
+                        @if (AppState.LlmService is BlazorApp1.Services.HybridLlmService hybrid)
+                        {
+                            @hybrid.WebLlm.StatusMessage
+                        }
+                    </span>
+                </div>
+                @if (AppState.LlmService is BlazorApp1.Services.HybridLlmService h && h.WebLlm.Progress > 0 && !h.WebLlm.IsReady)
+                {
+                    <div class="w-full bg-surface-raised rounded-full h-2 overflow-hidden">
+                        <div class="bg-accent h-2 transition-all duration-300" style="width: @((int)(h.WebLlm.Progress * 100))%"></div>
+                    </div>
+                    <div class="text-[0.7rem] text-ink-muted mt-1 text-right">@((int)(h.WebLlm.Progress * 100))% downloaded</div>
+                }
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <button class="bg-accent hover:bg-accent-hover text-[#090a0f] border-none rounded-lg px-4 py-2 text-[0.85rem] font-semibold cursor-pointer transition-colors"
+                        @onclick="InitializeWebLlmModel">
+                    Initialize / Preload In-Browser Model
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-surface border border-line rounded-[18px] p-5 sm:p-8 shadow-card mb-6">
             <h3 class="text-base sm:text-[1.1rem] font-bold text-ink mb-4">Appearance & Theme</h3>
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -879,6 +917,25 @@ else if (AppState.ActiveView == "settings")
     protected override void OnInitialized()
     {
         AppState.OnChange += StateHasChanged;
+        if (AppState.LlmService is BlazorApp1.Services.HybridLlmService hybrid)
+        {
+            hybrid.WebLlm.OnProgressChanged += () => InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task InitializeWebLlmModel()
+    {
+        if (AppState.LlmService is BlazorApp1.Services.HybridLlmService hybrid)
+        {
+            try
+            {
+                await hybrid.WebLlm.InitializeModelAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[WebLLM] Error: {ex.Message}");
+            }
+        }
     }
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)

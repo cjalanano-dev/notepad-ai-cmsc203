@@ -4,9 +4,9 @@ namespace BlazorApp1.Services;
 
 public class ChatService
 {
-    private readonly OllamaService _ollama;
+    private readonly ILlmService _ollama;
 
-    public ChatService(OllamaService ollama)
+    public ChatService(ILlmService ollama)
     {
         _ollama = ollama;
     }
