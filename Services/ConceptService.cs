@@ -4,9 +4,9 @@ namespace BlazorApp1.Services;
 
 public class ConceptService
 {
-    private readonly OllamaService _ollama;
+    private readonly ILlmService _ollama;
 
-    public ConceptService(OllamaService ollama)
+    public ConceptService(ILlmService ollama)
     {
         _ollama = ollama;
     }

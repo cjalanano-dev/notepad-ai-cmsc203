@@ -4,7 +4,7 @@ namespace BlazorApp1.Services;
 
 public class AppStateService
 {
-    private readonly OllamaService _ollamaService;
+    private readonly ILlmService _ollamaService;
     private readonly DocumentService _documentService;
     private readonly ConceptService _conceptService;
     private readonly ChatService _chatService;
@@ -42,10 +42,11 @@ public class AppStateService
     // AI Status state
     public bool IsAiBusy { get; private set; } = false;
     public string AiBusyMessage { get; private set; } = string.Empty;
-    public OllamaHealthResult OllamaStatus { get; private set; } = new();
+    public LlmHealthResult OllamaStatus { get; private set; } = new();
+    public ILlmService LlmService => _ollamaService;
 
     public AppStateService(
-        OllamaService ollamaService,
+        ILlmService ollamaService,
         DocumentService documentService,
         ConceptService conceptService,
         ChatService chatService,

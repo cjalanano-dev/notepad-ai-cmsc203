@@ -4,7 +4,7 @@ namespace BlazorApp1.Services;
 
 public class StudyService
 {
-    private readonly OllamaService _ollama;
+    private readonly ILlmService _ollama;
 
     public static readonly List<(string Criterion, int Points, string Description)> EssayRubric = new()
     {
@@ -15,7 +15,7 @@ public class StudyService
         ("Completeness", 10, "Addresses all aspects of the assigned task")
     };
 
-    public StudyService(OllamaService ollama)
+    public StudyService(ILlmService ollama)
     {
         _ollama = ollama;
     }

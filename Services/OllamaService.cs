@@ -4,7 +4,7 @@ using BlazorApp1.Models;
 
 namespace BlazorApp1.Services;
 
-public class OllamaService
+public class OllamaService : ILlmService
 {
     private readonly HttpClient _httpClient;
     private readonly string _baseUrl;
@@ -20,7 +20,7 @@ public class OllamaService
     public string DefaultModel => _defaultModel;
     public string BaseUrl => _baseUrl;
 
-    public async Task<OllamaHealthResult> CheckHealthAsync(string? modelName = null, CancellationToken ct = default)
+    public async Task<LlmHealthResult> CheckHealthAsync(string? modelName = null, CancellationToken ct = default)
     {
         var targetModel = modelName ?? _defaultModel;
         try
@@ -44,12 +44,13 @@ public class OllamaService
                 }
 
                 var available = modelsList.Any(m => m == targetModel || m.StartsWith(targetModel + ":") || m.StartsWith(targetModel));
-                return new OllamaHealthResult
+                return new LlmHealthResult
                 {
                     Connected = true,
                     Model = targetModel,
                     Available = available,
-                    ModelsList = modelsList
+                    ModelsList = modelsList,
+                    Provider = "Ollama"
                 };
             }
         }
@@ -58,12 +59,14 @@ public class OllamaService
             Console.WriteLine($"[OllamaService] CheckHealthAsync warning: {ex.Message}");
         }
 
-        return new OllamaHealthResult
+        return new LlmHealthResult
         {
             Connected = false,
             Model = targetModel,
             Available = false,
-            ModelsList = new()
+            ModelsList = new(),
+            Provider = "Ollama",
+            StatusMessage = "Cannot reach Ollama server"
         };
     }
 
@@ -111,7 +114,6 @@ public class OllamaService
         if (string.IsNullOrWhiteSpace(raw)) return null;
         var clean = raw.Trim();
 
-        // Extract markdown code blocks ```json ... ``` or ``` ... ```
         var match = System.Text.RegularExpressions.Regex.Match(clean, @"```(?:json)?\s*([\s\S]*?)\s*```");
         if (match.Success)
         {
@@ -136,10 +138,5 @@ public class OllamaService
     }
 }
 
-public class OllamaHealthResult
-{
-    public bool Connected { get; set; }
-    public string Model { get; set; } = string.Empty;
-    public bool Available { get; set; }
-    public List<string> ModelsList { get; set; } = new();
-}
+// Backward compatibility alias
+public class OllamaHealthResult : LlmHealthResult { }
