@@ -1,7 +1,7 @@
 # Notepad AI (In-Browser AI Study Companion)
 
 > A 100% client-side, zero-server AI study and research companion built with **Blazor WebAssembly (.NET 10)**, **WebGPU (WebLLM)**, **Tailwind CSS**, and **SQLite WASM**.
-> 
+>
 > Deployable directly as a static site on **GitHub Pages**—no backend server, no Docker, and no Ollama installation required. Everything runs privately inside the user's browser.
 
 ---
@@ -18,22 +18,26 @@
 ## Features
 
 ### Dynamic Concept Graph & Mind Map
+
 - **Interactive Mind Map Canvas**: Pan, zoom, and explore auto-generated concept relationships.
 - **Draggable Nodes**: Freely reposition concept nodes with dynamic connecting edges and relationship labels following in real-time.
 - **Canvas Controls**: Zoom in/out, anchored wheel scrolling, and one-click view reset toolbar.
 - **Verbatim Evidence Linking**: Click any node to open an inspection drawer showing grounded explanations along with exact source passage citations and page numbers.
 
 ### Grounded AI Reviewer Chat
+
 - **RAG-Powered Chat**: Ask questions directly about your uploaded documents and notes.
 - **Passage-Level Citations**: Every claim is verifiable with interactive source passage chips.
 - **Conversational UI**: Clean chat drawer with modern pill input and frosted glass aesthetics.
 
 ### Active Recall & Study Suite
+
 - **Interactive Quizzes**: Multiple-choice assessments generated directly from source materials with explanation breakdowns.
 - **Concept Flashcards**: Flip cards for core definitions, algorithms, and key theorems.
 - **Essay Synthesizer & Grader**: Draft essays on key topics and receive instant AI rubric grading and feedback.
 
 ### Modern, Distraction-Free UI
+
 - **Design Inspiration**: Combines the structured information density of **Google NotebookLM**, the conversational polish of modern AI chats, and the sleek aesthetic of **Gizmo**.
 - **Dark & Light Modes**: Seamless switching between a refined charcoal palette and clean light canvas.
 - **Command Palette (`Ctrl + K`)**: Fast keyboard navigation across recent documents, library collections, and views.
@@ -70,7 +74,7 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/carlosjames/BlazorApp1.git
+git clone https://github.com/cjalanano-dev/BlazorApp1.git
 cd BlazorApp1
 ```
 
