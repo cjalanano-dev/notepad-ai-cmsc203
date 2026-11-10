@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.JSInterop;
 
 namespace BlazorApp1.Services;
@@ -128,7 +129,35 @@ public class WebLlmService : ILlmService, IAsyncDisposable
     {
         var jsonPrompt = systemPrompt + "\nReturn strictly valid JSON. Do not include markdown codeblocks or extra explanations.";
         var text = await GenerateTextAsync(jsonPrompt, userPrompt, model, ct);
-        return OllamaService.CleanAndParseJson<T>(text);
+        return CleanAndParseJson<T>(text);
+    }
+
+    public static T? CleanAndParseJson<T>(string raw) where T : class
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        var clean = raw.Trim();
+
+        var match = System.Text.RegularExpressions.Regex.Match(clean, @"```(?:json)?\s*([\s\S]*?)\s*```");
+        if (match.Success)
+        {
+            clean = match.Groups[1].Value.Trim();
+        }
+        else
+        {
+            var braceMatch = System.Text.RegularExpressions.Regex.Match(clean, @"(\{[\s\S]*\}|\[[\s\S]*\])");
+            if (braceMatch.Success)
+            {
+                clean = braceMatch.Groups[1].Value.Trim();
+            }
+        }
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
+        };
+
+        return JsonSerializer.Deserialize<T>(clean, options);
     }
 
     public async ValueTask DisposeAsync()
@@ -146,4 +175,3 @@ public class WebLlmService : ILlmService, IAsyncDisposable
         public string? Message { get; set; }
     }
 }
-

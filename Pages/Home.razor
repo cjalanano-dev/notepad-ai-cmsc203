@@ -849,18 +849,18 @@ else if (AppState.ActiveView == "settings")
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-semibold text-ink">Model Status</span>
                     <span class="text-xs font-mono text-ink-secondary">
-                        @if (AppState.LlmService is BlazorApp1.Services.HybridLlmService hybrid)
+                        @if (AppState.LlmService is BlazorApp1.Services.WebLlmService webLlm)
                         {
-                            @hybrid.WebLlm.StatusMessage
+                            @webLlm.StatusMessage
                         }
                     </span>
                 </div>
-                @if (AppState.LlmService is BlazorApp1.Services.HybridLlmService h && h.WebLlm.Progress > 0 && !h.WebLlm.IsReady)
+                @if (AppState.LlmService is BlazorApp1.Services.WebLlmService w && w.Progress > 0 && !w.IsReady)
                 {
                     <div class="w-full bg-surface-raised rounded-full h-2 overflow-hidden">
-                        <div class="bg-accent h-2 transition-all duration-300" style="width: @((int)(h.WebLlm.Progress * 100))%"></div>
+                        <div class="bg-accent h-2 transition-all duration-300" style="width: @((int)(w.Progress * 100))%"></div>
                     </div>
-                    <div class="text-[0.7rem] text-ink-muted mt-1 text-right">@((int)(h.WebLlm.Progress * 100))% downloaded</div>
+                    <div class="text-[0.7rem] text-ink-muted mt-1 text-right">@((int)(w.Progress * 100))% downloaded</div>
                 }
             </div>
 
@@ -917,19 +917,19 @@ else if (AppState.ActiveView == "settings")
     protected override void OnInitialized()
     {
         AppState.OnChange += StateHasChanged;
-        if (AppState.LlmService is BlazorApp1.Services.HybridLlmService hybrid)
+        if (AppState.LlmService is BlazorApp1.Services.WebLlmService webLlm)
         {
-            hybrid.WebLlm.OnProgressChanged += () => InvokeAsync(StateHasChanged);
+            webLlm.OnProgressChanged += () => InvokeAsync(StateHasChanged);
         }
     }
 
     private async Task InitializeWebLlmModel()
     {
-        if (AppState.LlmService is BlazorApp1.Services.HybridLlmService hybrid)
+        if (AppState.LlmService is BlazorApp1.Services.WebLlmService webLlm)
         {
             try
             {
-                await hybrid.WebLlm.InitializeModelAsync();
+                await webLlm.InitializeModelAsync();
             }
             catch (Exception ex)
             {

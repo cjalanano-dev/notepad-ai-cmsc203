@@ -116,7 +116,7 @@ public class AppStateService
         }
     }
 
-    public async Task RefreshOllamaStatusAsync()
+    public async Task RefreshLlmStatusAsync()
     {
         OllamaStatus = await _ollamaService.CheckHealthAsync();
         NotifyStateChanged();
