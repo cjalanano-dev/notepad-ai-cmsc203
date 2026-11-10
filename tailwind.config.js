@@ -35,7 +35,7 @@ module.exports = {
       },
       boxShadow: {
         'card': '0 4px 20px -2px rgba(0, 0, 0, 0.45)',
-        'card-hover': '0 12px 36px -4px rgba(0, 0, 0, 0.65), 0 0 20px -3px rgba(56, 189, 248, 0.15)',
+        'card-hover': '0 12px 36px -4px rgba(0, 0, 0, 0.65), 0 0 16px -3px rgba(59, 130, 246, 0.12)',
         'palette': '0 24px 60px rgba(0, 0, 0, 0.6)',
       }
     },

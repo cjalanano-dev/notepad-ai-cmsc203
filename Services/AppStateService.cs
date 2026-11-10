@@ -70,6 +70,13 @@ public class AppStateService
         {
             await _sqliteService.EnsureInitializedAsync();
             var savedDocs = await _sqliteService.GetAllDocumentsAsync();
+            var savedFolders = await _sqliteService.GetAllFoldersAsync();
+            Folders = savedFolders;
+
+            foreach (var f in Folders)
+            {
+                f.DocumentCount = savedDocs.Count(d => d.ProjectId == f.Id);
+            }
 
             if (savedDocs.Count > 0)
             {
@@ -208,6 +215,47 @@ public class AppStateService
             SampleFlashcards = await _sqliteService.GetFlashcardsAsync(SelectedDocument.Id);
         }
         ActiveView = "workspace";
+        NotifyStateChanged();
+    }
+
+    public async Task CreateFolderAsync(string name)
+    {
+        name = name.Trim();
+        if (string.IsNullOrWhiteSpace(name)) return;
+        var folderId = await _sqliteService.InsertFolderAsync(name);
+        Folders.Add(new ProjectFolder
+        {
+            Id = folderId,
+            Name = name,
+            CreatedAt = DateTime.Now,
+            DocumentCount = 0
+        });
+        NotifyStateChanged();
+    }
+
+    public async Task DeleteFolderAsync(int folderId)
+    {
+        await _sqliteService.DeleteFolderAsync(folderId);
+        Folders.RemoveAll(f => f.Id == folderId);
+        foreach (var doc in Documents.Where(d => d.ProjectId == folderId))
+        {
+            doc.ProjectId = null;
+        }
+        NotifyStateChanged();
+    }
+
+    public async Task AssignDocumentToFolderAsync(int documentId, int? folderId)
+    {
+        await _sqliteService.AssignDocumentToFolderAsync(documentId, folderId);
+        var doc = Documents.FirstOrDefault(d => d.Id == documentId);
+        if (doc != null)
+        {
+            doc.ProjectId = folderId;
+        }
+        foreach (var f in Folders)
+        {
+            f.DocumentCount = Documents.Count(d => d.ProjectId == f.Id);
+        }
         NotifyStateChanged();
     }
 

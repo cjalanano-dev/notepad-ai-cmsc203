@@ -37,6 +37,12 @@ window.sqliteStorage = {
 
     createSchema() {
         const schema = `
+            CREATE TABLE IF NOT EXISTS folders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+
             CREATE TABLE IF NOT EXISTS documents (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 filename TEXT NOT NULL,
@@ -44,8 +50,10 @@ window.sqliteStorage = {
                 processing_status TEXT NOT NULL,
                 chunk_count INTEGER NOT NULL DEFAULT 0,
                 has_map INTEGER NOT NULL DEFAULT 0,
+                folder_id INTEGER,
                 cover_url TEXT,
-                raw_text TEXT
+                raw_text TEXT,
+                FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE SET NULL
             );
 
             CREATE TABLE IF NOT EXISTS source_chunks (

@@ -77,6 +77,7 @@ public class SqliteStorageService
                 ProcessingStatus = r.Processing_Status ?? "ready",
                 ChunkCount = r.Chunk_Count,
                 HasMap = r.Has_Map == 1,
+                ProjectId = r.Folder_Id,
                 CoverUrl = r.Cover_Url,
                 Passages = passages
             });
@@ -311,6 +312,43 @@ public class SqliteStorageService
         }).ToList();
     }
 
+    public async Task<List<ProjectFolder>> GetAllFoldersAsync()
+    {
+        var rawFolders = await QueryAsync<SqlFolderRow>("SELECT * FROM folders ORDER BY id ASC;");
+        return rawFolders.Select(f => new ProjectFolder
+        {
+            Id = f.Id,
+            Name = f.Name,
+            CreatedAt = DateTime.TryParse(f.Created_At, out var dt) ? dt : DateTime.Now,
+            DocumentCount = 0
+        }).ToList();
+    }
+
+    public async Task<int> InsertFolderAsync(string name)
+    {
+        await ExecuteAsync("INSERT INTO folders (name, created_at) VALUES (?, ?);", name, DateTime.Now.ToString("o"));
+        var lastIdList = await QueryAsync<SqlIdRow>("SELECT last_insert_rowid() as id;");
+        return lastIdList.FirstOrDefault()?.Id ?? 0;
+    }
+
+    public async Task DeleteFolderAsync(int folderId)
+    {
+        await ExecuteAsync("UPDATE documents SET folder_id = NULL WHERE folder_id = ?;", folderId);
+        await ExecuteAsync("DELETE FROM folders WHERE id = ?;", folderId);
+    }
+
+    public async Task AssignDocumentToFolderAsync(int documentId, int? folderId)
+    {
+        await ExecuteAsync("UPDATE documents SET folder_id = ? WHERE id = ?;", (object?)folderId ?? DBNull.Value, documentId);
+    }
+
+    private class SqlFolderRow
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Created_At { get; set; } = "";
+    }
+
     private class SqlDocumentRow
     {
         public int Id { get; set; }
@@ -319,6 +357,7 @@ public class SqliteStorageService
         public string Processing_Status { get; set; } = "ready";
         public int Chunk_Count { get; set; }
         public int Has_Map { get; set; }
+        public int? Folder_Id { get; set; }
         public string? Cover_Url { get; set; }
     }
 

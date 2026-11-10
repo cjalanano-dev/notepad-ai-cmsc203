@@ -8,54 +8,60 @@
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Modern Black & White with Subtle Ice-Blue Hints (Dark Theme) */
-  --canvas: #090a0f;
-  --surface: #0f1118;
-  --surface-raised: #151922;
-  --surface-hover: #1e2330;
-  --line: #1b202c;
-  --line-strong: #283042;
-  --ink: #f8fafc;
-  --ink-secondary: #94a3b8;
-  --ink-muted: #64748b;
-  --accent: #38bdf8;
+  /* Sleek Monochrome Palette with Subtle Soft Blue Accent (Dark Theme) */
+  --canvas: #0e0e11;
+  --surface: #141418;
+  --surface-raised: #1c1c22;
+  --surface-hover: #26262e;
+  --line: #22222a;
+  --line-strong: #2e2e38;
+  --ink: #f4f4f6;
+  --ink-secondary: #9c9ca8;
+  --ink-muted: #626270;
+  
+  /* Subtle Blue Hint for Buttons / Active Elements */
+  --accent: #3b82f6;
   --accent-hover: #60a5fa;
-  --accent-glow: rgba(56, 189, 248, 0.18);
-  --accent-soft: rgba(56, 189, 248, 0.08);
-  --accent-border: rgba(56, 189, 248, 0.28);
-  --danger: #f43f5e;
-  --danger-soft: rgba(244, 63, 94, 0.12);
+  --accent-glow: rgba(59, 130, 246, 0.16);
+  --accent-soft: rgba(59, 130, 246, 0.08);
+  --accent-border: rgba(59, 130, 246, 0.25);
+  
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.12);
   --success: #10b981;
   --success-soft: rgba(16, 185, 129, 0.12);
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 4px 20px -2px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 12px 36px -4px rgba(0, 0, 0, 0.85);
-  --shadow-glow: 0 0 24px -2px var(--accent-glow);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 20px -2px rgba(0, 0, 0, 0.65);
+  --shadow-lg: 0 12px 36px -4px rgba(0, 0, 0, 0.9);
+  --shadow-glow: 0 0 20px -2px var(--accent-glow);
 }
 
 [data-theme="light"] {
-  /* Crisp White, Pure Ink Black with Subtle Cool Blue Hints (Light Theme) */
-  --canvas: #f8fafc;
+  /* Crisp Minimal Monochrome with Soft Slate & Subtle Blue Hint (Light Theme) */
+  --canvas: #f6f6f8;
   --surface: #ffffff;
-  --surface-raised: #f1f5f9;
-  --surface-hover: #e2e8f0;
-  --line: #e2e8f0;
-  --line-strong: #cbd5e1;
-  --ink: #090d16;
-  --ink-secondary: #334155;
-  --ink-muted: #64748b;
-  --accent: #0284c7;
-  --accent-hover: #0369a1;
-  --accent-glow: rgba(2, 132, 199, 0.14);
-  --accent-soft: rgba(2, 132, 199, 0.08);
-  --accent-border: rgba(2, 132, 199, 0.24);
-  --danger: #e11d48;
-  --danger-soft: rgba(225, 29, 72, 0.1);
+  --surface-raised: #eeeff2;
+  --surface-hover: #e3e4e9;
+  --line: #e2e3e8;
+  --line-strong: #caccd5;
+  --ink: #111116;
+  --ink-secondary: #4b4b56;
+  --ink-muted: #787886;
+  
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-glow: rgba(37, 99, 235, 0.12);
+  --accent-soft: rgba(37, 99, 235, 0.06);
+  --accent-border: rgba(37, 99, 235, 0.2);
+  
+  --danger: #dc2626;
+  --danger-soft: rgba(220, 38, 38, 0.08);
   --success: #059669;
-  --success-soft: rgba(5, 150, 105, 0.1);
-  --shadow-md: 0 4px 16px -2px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 12px 36px -4px rgba(15, 23, 42, 0.12);
+  --success-soft: rgba(5, 150, 105, 0.08);
+
+  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 12px 36px -4px rgba(0, 0, 0, 0.08);
 }
 
 * {
@@ -68,127 +74,26 @@ html, body {
   color: var(--ink);
   height: 100%;
   width: 100%;
-  overflow: hidden;
+  margin: 0;
+  padding: 0;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Scrollbars */
+/* Custom minimal scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--line-strong);
   border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--ink-muted);
 }
-
-/* Radial and dotted grid background for mind map canvas */
-.canvas-bg {
-  background-color: var(--canvas);
-  background-image: 
-    radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.04) 0%, transparent 80%),
-    radial-gradient(rgba(148, 163, 184, 0.12) 1.2px, transparent 1.2px);
-  background-size: 100% 100%, 28px 28px;
-  background-position: 0 0, 0 0;
-}
-
-[data-theme="light"] .canvas-bg {
-  background-color: #f8fafc;
-  background-image: 
-    radial-gradient(circle at 50% 50%, rgba(2, 132, 199, 0.03) 0%, transparent 80%),
-    radial-gradient(rgba(100, 116, 139, 0.15) 1.2px, transparent 1.2px);
-  background-size: 100% 100%, 28px 28px;
-}
-
-.graph-canvas {
-  width: 100%;
-  height: 100%;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-}
-.graph-canvas:active {
-  cursor: grabbing;
-}
-.graph-node {
-  cursor: grab;
-  transition: filter 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.graph-node:active {
-  cursor: grabbing;
-}
-.graph-node:hover {
-  filter: drop-shadow(0 4px 18px rgba(56, 189, 248, 0.35));
-}
-.graph-node.selected rect {
-  stroke: var(--accent);
-  stroke-width: 2.5;
-  filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.55));
-}
-
-/* NotebookLM & ChatGPT styled UI pills and subtle animations */
-.glass-pill {
-  background: rgba(17, 21, 31, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-
-[data-theme="light"] .glass-pill {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.06);
-}
-
-.interactive-btn {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.interactive-btn:hover {
-  transform: translateY(-1px);
-}
-.interactive-btn:active {
-  transform: scale(0.97);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.15s ease-out forwards;
-}
-
-/* Chat & Model response prose typography */
-.chat-prose {
-  word-break: break-word;
-  line-height: 1.625;
-}
-.chat-prose p {
-  margin-bottom: 0.65rem;
-}
-.chat-prose p:last-child {
-  margin-bottom: 0;
-}
-.chat-prose ul, .chat-prose ol {
-  margin: 0.5rem 0 0.75rem 0;
-  padding-left: 1.25rem;
-}
-.chat-prose li {
-  margin-bottom: 0.35rem;
-}
-.chat-prose pre {
-  margin: 0.75rem 0;
-}
-.chat-prose blockquote {
-  margin: 0.75rem 0;
-}
-

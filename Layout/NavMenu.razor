@@ -83,37 +83,6 @@
                 <span class="md:hidden">Library</span>
             }
         </button>
-
-        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "md:justify-center md:px-0" : "") @(AppState.ActiveView == "trash" ? "bg-surface-hover text-ink font-semibold shadow-sm border-l-2 border-accent" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("trash")'>
-            <svg class="w-4 h-4 flex-shrink-0 @(AppState.ActiveView == "trash" ? "text-accent" : "")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-            </svg>
-            @if (!AppState.IsSidebarCollapsed)
-            {
-                <span>Trash</span>
-                <span class="ml-auto bg-surface-raised text-ink-muted text-[0.7rem] font-semibold px-2 py-0.5 rounded-full border border-line">@AppState.TrashedDocuments.Count</span>
-            }
-            else
-            {
-                <span class="md:hidden">Trash</span>
-                <span class="ml-auto bg-surface-raised text-ink-muted text-[0.7rem] font-semibold px-2 py-0.5 rounded-full border border-line md:hidden">@AppState.TrashedDocuments.Count</span>
-            }
-        </button>
-
-        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "md:justify-center md:px-0" : "") @(AppState.ActiveView == "settings" ? "bg-surface-hover text-ink font-semibold shadow-sm border-l-2 border-accent" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("settings")'>
-            <svg class="w-4 h-4 flex-shrink-0 @(AppState.ActiveView == "settings" ? "text-accent" : "")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                <circle cx="12" cy="12" r="3"/>
-            </svg>
-            @if (!AppState.IsSidebarCollapsed)
-            {
-                <span>Settings</span>
-            }
-            else
-            {
-                <span class="md:hidden">Settings</span>
-            }
-        </button>
     </div>
 
     <!-- Study Tools Section -->
@@ -168,43 +137,59 @@
             }
         </button>
 
-        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.865rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "md:justify-center md:px-0" : "") @(AppState.ActiveView == "settings" ? "bg-surface-hover text-ink font-semibold shadow-sm border-l-2 border-accent" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("settings")'>
+    </div>
+
+    <!-- Bottom Action Footer: AI Engine, Trash, Settings -->
+    <div class="mt-auto px-2.5 py-2.5 border-t border-line flex flex-col gap-1 bg-surface/50">
+        <!-- AI Engine -->
+        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.84rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "md:justify-center md:px-0" : "") @(AppState.ActiveView == "settings" ? "bg-surface-hover text-ink font-semibold" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" 
+                @onclick='() => AppState.SetView("settings")' 
+                title="AI Engine & WebGPU Model">
+            <svg class="w-4 h-4 flex-shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+            @if (!AppState.IsSidebarCollapsed)
+            {
+                <span class="flex items-center justify-between w-full">
+                    <span>AI Engine</span>
+                    <span class="text-[0.65rem] px-1.5 py-0.5 rounded bg-accent-soft text-accent border border-accent-border font-mono font-semibold">WebGPU</span>
+                </span>
+            }
+        </button>
+
+        <!-- Trash -->
+        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.84rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "md:justify-center md:px-0" : "") @(AppState.ActiveView == "trash" ? "bg-surface-hover text-ink font-semibold" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" 
+                @onclick='() => AppState.SetView("trash")' 
+                title="Trash">
+            <svg class="w-4 h-4 flex-shrink-0 @(AppState.ActiveView == "trash" ? "text-accent" : "")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+            </svg>
+            @if (!AppState.IsSidebarCollapsed)
+            {
+                <span class="flex items-center justify-between w-full">
+                    <span>Trash</span>
+                    @if (AppState.TrashedDocuments.Count > 0)
+                    {
+                        <span class="text-[0.65rem] px-1.5 py-0.2 rounded bg-surface-raised text-ink-muted border border-line">
+                            @AppState.TrashedDocuments.Count
+                        </span>
+                    }
+                </span>
+            }
+        </button>
+
+        <!-- Settings / Preferences -->
+        <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.84rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "md:justify-center md:px-0" : "") @(AppState.ActiveView == "settings" ? "bg-surface-hover text-ink font-semibold" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" 
+                @onclick='() => AppState.SetView("settings")' 
+                title="Preferences">
             <svg class="w-4 h-4 flex-shrink-0 @(AppState.ActiveView == "settings" ? "text-accent" : "")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
                 <circle cx="12" cy="12" r="3"/>
             </svg>
             @if (!AppState.IsSidebarCollapsed)
             {
-                <span class="flex items-center gap-1.5">
-                    AI Engine
-                    <span class="text-[0.65rem] px-1.5 py-0.5 rounded bg-accent/20 text-accent font-semibold">WebGPU</span>
-                </span>
-            }
-            else
-            {
-                <span class="md:hidden">AI Engine</span>
+                <span>Settings</span>
             }
         </button>
-    </div>
-
-    <!-- User Profile Footer -->
-    <div class="mt-auto px-4 py-3.5 bg-black/20 border-t border-line flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-surface-raised border border-accent-border flex items-center justify-center text-[0.8rem] text-accent font-semibold flex-shrink-0">
-            @(AppState.User.DisplayName?.Substring(0, 1).ToUpper() ?? "U")
-        </div>
-        @if (!AppState.IsSidebarCollapsed)
-        {
-            <div class="flex flex-col overflow-hidden leading-tight">
-                <span class="text-[0.825rem] font-semibold text-ink truncate">@AppState.User.DisplayName</span>
-                <span class="text-[0.72rem] text-ink-muted truncate">@AppState.User.Email</span>
-            </div>
-        }
-        else
-        {
-            <div class="flex flex-col overflow-hidden leading-tight md:hidden">
-                <span class="text-[0.825rem] font-semibold text-ink truncate">@AppState.User.DisplayName</span>
-                <span class="text-[0.72rem] text-ink-muted truncate">@AppState.User.Email</span>
-            </div>
-        }
     </div>
 </aside>
