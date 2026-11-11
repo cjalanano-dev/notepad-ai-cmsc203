@@ -2,7 +2,7 @@
 // Uses @mlc-ai/web-llm via ESM CDN import
 
 let engine = null;
-let currentModel = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
+let currentModel = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
 let initProgressCallbackDotNet = null;
 let isInitializing = false;
 
