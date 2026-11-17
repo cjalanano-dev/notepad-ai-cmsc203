@@ -46,3 +46,30 @@ window.keyboardShortcuts = {
         });
     }
 };
+
+window.flashcardKeyboard = {
+    dotNetRef: null,
+    isRegistered: false,
+    handler: null
+};
+
+window.initFlashcardKeyboard = function (dotNetHelper) {
+    window.flashcardKeyboard.dotNetRef = dotNetHelper;
+    if (window.flashcardKeyboard.isRegistered) return;
+    window.flashcardKeyboard.isRegistered = true;
+
+    window.addEventListener("keydown", function (e) {
+        // Only trigger if not typing inside an input or textarea
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+        if (tag === 'input' || tag === 'textarea' || (e.target && e.target.isContentEditable)) {
+            return;
+        }
+
+        if (e.key === " " || e.key === "ArrowLeft" || e.key === "ArrowRight") {
+            if (e.key === " ") e.preventDefault();
+            if (window.flashcardKeyboard.dotNetRef) {
+                window.flashcardKeyboard.dotNetRef.invokeMethodAsync("OnFlashcardKeyDown", e.key);
+            }
+        }
+    });
+};

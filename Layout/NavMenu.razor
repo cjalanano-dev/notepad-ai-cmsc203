@@ -152,7 +152,17 @@
             {
                 <span class="flex items-center justify-between w-full">
                     <span>AI Engine</span>
-                    <span class="text-[0.65rem] px-1.5 py-0.5 rounded bg-accent-soft text-accent border border-accent-border font-mono font-semibold">OpenRouter</span>
+                    @if (AppState.LlmService is OpenRouterService ors && ors.ActiveProviderName.Contains("Groq"))
+                    {
+                        <span class="text-[0.65rem] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono font-semibold flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Groq LPU
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-[0.65rem] px-1.5 py-0.5 rounded bg-accent-soft text-accent border border-accent-border font-mono font-semibold">OpenRouter</span>
+                    }
                 </span>
             }
         </button>

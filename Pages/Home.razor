@@ -136,19 +136,24 @@ else if (AppState.ActiveView == "workspace")
 
             <!-- Mind Map Floating Zoom & Reset Toolbar -->
             <div class="absolute bottom-3 sm:bottom-5 left-3 sm:left-5 z-20 flex items-center gap-1 bg-surface/95 backdrop-blur-md border border-line rounded-lg p-1 select-none shadow-md">
-                <button class="w-7 h-7 rounded bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink flex items-center justify-center border border-line transition-colors" @onclick="ZoomIn" title="Zoom in">
+                <button class="w-7 h-7 rounded bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink flex items-center justify-center border border-line transition-colors cursor-pointer" @onclick="ZoomIn" title="Zoom in">
                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
                 </button>
-                <button class="w-7 h-7 rounded bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink flex items-center justify-center border border-line transition-colors" @onclick="ZoomOut" title="Zoom out">
+                <button class="w-7 h-7 rounded bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink flex items-center justify-center border border-line transition-colors cursor-pointer" @onclick="ZoomOut" title="Zoom out">
                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
                 </button>
                 <div class="h-3.5 w-[1px] bg-line mx-0.5"></div>
-                <button class="px-2 h-7 rounded bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-ink flex items-center gap-1 text-[0.72rem] font-mono border border-line transition-colors" @onclick="ResetCanvasView" title="Reset view">
-                    <span id="map-zoom-level-text">100%</span>
+                <button class="px-2.5 h-7 rounded bg-surface-raised hover:bg-surface-hover text-ink-secondary hover:text-accent flex items-center gap-1.5 text-[0.72rem] font-medium border border-line transition-colors cursor-pointer" @onclick="ResetCanvasView" title="Center and reset map view">
+                    <svg class="w-3 h-3 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M3 12h3m12 0h3M12 3v3m0 12v3"/>
+                    </svg>
+                    <span>Center Map</span>
+                    <span id="map-zoom-level-text" class="text-ink-muted font-mono ml-0.5">100%</span>
                 </button>
             </div>
 
@@ -745,20 +750,63 @@ else if (AppState.ActiveView == "quiz")
             <div class="flex flex-wrap items-center gap-4 mt-6">
                 @if (!hasSubmittedQuiz)
                 {
-                    <button class="bg-accent hover:bg-accent-hover text-white border-none rounded-lg px-6 py-2.5 text-[0.95rem] font-semibold cursor-pointer transition-colors shadow-sm" @onclick="() => hasSubmittedQuiz = true">
-                        Submit Assessment
-                    </button>
+                    var answeredCount = quizSelections.Count;
+                    var totalCount = AppState.SampleQuiz.Count;
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-3 p-4 bg-surface border border-line rounded-xl">
+                        <div class="flex items-center gap-2 text-sm text-ink-secondary">
+                            <span class="font-mono text-accent font-semibold">@answeredCount of @totalCount answered</span>
+                            @if (answeredCount == totalCount)
+                            {
+                                <span class="text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-medium">Ready to submit!</span>
+                            }
+                        </div>
+                        <button class="bg-accent hover:bg-accent-hover text-white border-none rounded-lg px-6 py-2.5 text-[0.925rem] font-semibold cursor-pointer transition-colors shadow-sm disabled:opacity-50" @onclick="() => hasSubmittedQuiz = true" disabled="@(answeredCount == 0)">
+                            Submit Assessment
+                        </button>
+                    </div>
                 }
                 else
                 {
                     var correctCount = AppState.SampleQuiz.Count(q => quizSelections.ContainsKey(AppState.SampleQuiz.IndexOf(q)) && quizSelections[AppState.SampleQuiz.IndexOf(q)] == q.AnswerIndex);
-                    <div class="flex flex-wrap items-center gap-4">
-                        <span class="text-[1.05rem] font-bold text-ink bg-surface-raised border border-line px-4 py-2 rounded-lg">
-                            Score: @correctCount / @AppState.SampleQuiz.Count (@((int)((double)correctCount / AppState.SampleQuiz.Count * 100))%)
-                        </span>
-                        <button class="bg-surface-raised border border-line text-ink hover:bg-surface-hover rounded-lg px-4 py-2 text-[0.875rem] font-medium cursor-pointer transition-colors" @onclick="() => { hasSubmittedQuiz = false; quizSelections.Clear(); }">
-                            Retake Quiz
-                        </button>
+                    var totalCount = AppState.SampleQuiz.Count;
+                    var percentage = (int)((double)correctCount / totalCount * 100);
+                    var isPassing = percentage >= 75;
+
+                    <div class="w-full bg-surface border @(isPassing ? "border-emerald-500/40 bg-emerald-500/5" : "border-accent/40 bg-accent/5") rounded-2xl p-6 sm:p-8 shadow-card flex flex-col sm:flex-row items-center justify-between gap-6 animate-scale-in">
+                        <div class="flex items-center gap-4 text-center sm:text-left">
+                            <div class="w-16 h-16 rounded-2xl @(isPassing ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40" : "bg-accent/20 text-accent border border-accent/40") flex items-center justify-center flex-shrink-0">
+                                @if (isPassing)
+                                {
+                                    <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                }
+                                else
+                                {
+                                    <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                                    </svg>
+                                }
+                            </div>
+                            <div>
+                                <div class="text-[0.75rem] font-bold uppercase tracking-wider text-ink-muted">Assessment Complete</div>
+                                <h2 class="text-xl sm:text-2xl font-bold text-ink mb-1">
+                                    Score: @correctCount / @totalCount (@percentage%)
+                                </h2>
+                                <p class="text-xs sm:text-sm text-ink-secondary">
+                                    @(isPassing ? "Mastery achieved! You demonstrated strong conceptual understanding." : "Good attempt! Review the citations and solution walkthroughs above to solidify gaps.")
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 flex-shrink-0">
+                            <button class="bg-surface-raised border border-line text-ink hover:bg-surface-hover rounded-xl px-4 py-2.5 text-sm font-medium cursor-pointer transition-colors" @onclick="() => { hasSubmittedQuiz = false; quizSelections.Clear(); }">
+                                Retake Quiz
+                            </button>
+                            <button class="bg-accent hover:bg-accent-hover text-white rounded-xl px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors shadow-sm" @onclick="GenerateQuiz" disabled="@AppState.IsAiBusy">
+                                New Questions
+                            </button>
+                        </div>
                     </div>
                 }
             </div>
@@ -807,8 +855,11 @@ else if (AppState.ActiveView == "flashcards")
                 </span>
             </div>
             <h1 class="text-2xl sm:text-[1.85rem] font-bold tracking-tight text-ink mb-1.5">Interactive Concept Flashcards</h1>
-            <p class="text-ink-secondary text-sm sm:text-[0.9rem]">
+            <p class="text-ink-secondary text-sm sm:text-[0.9rem] flex items-center gap-2 flex-wrap">
                 @(AppState.SampleFlashcards.Count > 0 ? $"Card {currentCardIndex + 1} of {AppState.SampleFlashcards.Count} • Click anywhere to flip" : "Review key definitions and core topics.")
+                <span class="text-xs text-ink-muted bg-surface-raised px-2 py-0.5 rounded border border-line font-mono hidden sm:inline">
+                    Keys: [Space] Flip • [←/→] Navigate
+                </span>
             </p>
         </div>
 
@@ -1247,6 +1298,28 @@ else if (AppState.ActiveView == "settings")
         await AppState.GradeEssaySubmissionAsync(AppState.SampleEssay.Submission);
     }
 
+    [JSInvokable]
+    public void OnFlashcardKeyDown(string key)
+    {
+        if (AppState.ActiveView != "flashcards" || AppState.SampleFlashcards.Count == 0) return;
+
+        if (key == " " || key == "Space")
+        {
+            isCardFlipped = !isCardFlipped;
+            StateHasChanged();
+        }
+        else if (key == "ArrowRight")
+        {
+            NextCard();
+            StateHasChanged();
+        }
+        else if (key == "ArrowLeft")
+        {
+            PrevCard();
+            StateHasChanged();
+        }
+    }
+
     private DotNetObjectReference<Home>? dotNetHelper;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -1256,9 +1329,10 @@ else if (AppState.ActiveView == "settings")
             await AppState.InitializeSqliteAsync();
         }
 
+        dotNetHelper ??= DotNetObjectReference.Create(this);
+
         if (AppState.ActiveView == "workspace")
         {
-            dotNetHelper ??= DotNetObjectReference.Create(this);
             try
             {
                 await JSRuntime.InvokeVoidAsync("conceptMapInteractions.init", dotNetHelper);
@@ -1266,6 +1340,17 @@ else if (AppState.ActiveView == "settings")
             catch (Exception ex)
             {
                 Console.WriteLine($"Error initializing concept map JS: {ex.Message}");
+            }
+        }
+        else if (AppState.ActiveView == "flashcards")
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("initFlashcardKeyboard", dotNetHelper);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing flashcards keyboard JS: {ex.Message}");
             }
         }
     }

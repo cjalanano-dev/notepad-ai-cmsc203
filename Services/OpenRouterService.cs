@@ -33,6 +33,7 @@ public class OpenRouterService : ILlmService
     public string DefaultModel => _selectedModel;
     public bool HasApiKey => !string.IsNullOrWhiteSpace(_apiKey);
     public bool HasGroqFallback => !string.IsNullOrWhiteSpace(_groqApiKey);
+    public string ActiveProviderName { get; private set; } = "OpenRouter";
     public string StatusMessage { get; private set; } = "Ready";
 
     public OpenRouterService(
@@ -238,6 +239,7 @@ public class OpenRouterService : ILlmService
         }
 
         var (replyText, actualModel) = ExtractCompletionText(responseText, primaryModel);
+        ActiveProviderName = "OpenRouter";
         StatusMessage = string.Equals(actualModel, primaryModel, StringComparison.OrdinalIgnoreCase)
             ? $"Ready ({actualModel})"
             : $"Ready (routed to {actualModel})";
@@ -281,6 +283,7 @@ public class OpenRouterService : ILlmService
         }
 
         var (replyText, actualModel) = ExtractCompletionText(responseText, groqModel);
+        ActiveProviderName = "Groq (LPU)";
         StatusMessage = $"Ready (Groq failover: {actualModel})";
         return replyText;
     }
