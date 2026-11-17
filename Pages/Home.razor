@@ -100,6 +100,12 @@ else if (AppState.ActiveView == "workspace")
                 </div>
 
                 <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md px-2 sm:px-2.5 py-1 text-[0.75rem] sm:text-[0.785rem] font-medium flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50" @onclick="RegenerateMap" disabled="@AppState.IsAiBusy" title="Regenerate Concept Tree">
+                        <svg class="w-3.5 h-3.5 text-accent @(AppState.IsAiBusy ? "animate-spin" : "")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                        </svg>
+                        <span class="hidden sm:inline">@(AppState.IsAiBusy ? "Building..." : "Rebuild Tree")</span>
+                    </button>
                     <button class="bg-surface-raised border border-line text-ink-secondary hover:text-ink hover:bg-surface-hover rounded-md px-2 sm:px-2.5 py-1 text-[0.75rem] sm:text-[0.785rem] font-medium flex items-center gap-1 cursor-pointer transition-colors" @onclick="() => isSourcesPanelOpen = !isSourcesPanelOpen" title="View Sources">
                         <svg class="w-3.5 h-3.5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -151,63 +157,86 @@ else if (AppState.ActiveView == "workspace")
                 <span>Drag nodes to organize • Drag canvas or scroll to pan & zoom</span>
             </div>
 
-            <!-- Concept Graph Visualizer (Interactive Draggable Mind Map SVG) -->
-            <svg id="concept-map-svg" class="graph-canvas w-full h-full" viewBox="0 0 900 650">
+            <!-- Concept Graph Visualizer (Interactive Hierarchical Tree Concept Map SVG) -->
+            <svg id="concept-map-svg" class="graph-canvas w-full h-full" viewBox="0 0 1280 720">
                 <defs>
-                    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#94a3b8" />
+                    <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#64748b" />
                     </marker>
                 </defs>
 
                 <!-- Panning and Zooming Viewport Container -->
                 <g id="concept-viewport-group">
-                    <!-- Edges / Connections -->
+                    <!-- Edges / Tree Branches (Smooth Vertical Cubic Bezier Curves) -->
                     @foreach (var edge in AppState.CurrentEdges)
                     {
                         var source = AppState.CurrentNodes.FirstOrDefault(n => n.Id == edge.SourceNodeId);
                         var target = AppState.CurrentNodes.FirstOrDefault(n => n.Id == edge.TargetNodeId);
                         if (source != null && target != null)
                         {
-                            var midX = (source.X + target.X) / 2;
-                            var midY = (source.Y + target.Y) / 2;
-                            <line id="edge-line-@edge.Id"
+                            var srcHalfH = source.NodeType == "root" ? 41 : (source.NodeType == "subconcept" ? 31 : 36);
+                            var tgtHalfH = target.NodeType == "root" ? 41 : (target.NodeType == "subconcept" ? 31 : 36);
+
+                            var startX = source.X;
+                            var startY = source.Y + srcHalfH;
+                            var endX = target.X;
+                            var endY = target.Y - tgtHalfH - 4;
+
+                            var ctrlY = (startY + endY) / 2.0;
+                            var pathData = $"M {startX} {startY} C {startX} {ctrlY}, {endX} {ctrlY}, {endX} {endY}";
+
+                            var midX = (startX + endX) / 2.0;
+                            var midY = (startY + endY) / 2.0;
+
+                            <path id="edge-path-@edge.Id"
                                   data-edge-id="@edge.Id"
                                   data-source-id="@edge.SourceNodeId"
                                   data-target-id="@edge.TargetNodeId"
-                                  x1="@source.X" y1="@source.Y"
-                                  x2="@target.X" y2="@target.Y"
-                                  stroke="#64748b"
-                                  stroke-width="2.5"
+                                  data-src-half-h="@srcHalfH"
+                                  data-tgt-half-h="@tgtHalfH"
+                                  data-start-x="@startX"
+                                  data-start-y="@startY"
+                                  data-end-x="@endX"
+                                  data-end-y="@endY"
+                                  d="@pathData"
+                                  fill="none"
+                                  stroke="#475569"
+                                  stroke-width="2"
                                   stroke-linecap="round"
                                   marker-end="url(#arrow)" />
 
                             @if (!string.IsNullOrWhiteSpace(edge.Relationship))
                             {
+                                var relText = edge.Relationship.Trim();
+                                var pillWidth = Math.Clamp(Math.Round((relText.Length * 5.8) + 22), 68, 146);
+                                var halfPillW = Math.Round(pillWidth / 2.0);
                                 <g id="edge-label-@edge.Id" transform="translate(@midX, @midY)">
-                                    <rect x="-44" y="-11" width="88" height="22" rx="5" fill="#0f172a" stroke="#475569" stroke-width="1.5" />
-                                    <text x="0" y="3.5" text-anchor="middle" font-size="9.5" font-weight="600" fill="#cbd5e1" font-family="Plus Jakarta Sans">@edge.Relationship</text>
+                                    <rect x="@(-halfPillW)" y="-10" width="@pillWidth" height="20" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1.2" />
+                                    <text x="0" y="3.5" text-anchor="middle" font-size="9.5" font-weight="600" fill="#94a3b8" font-family="Plus Jakarta Sans, sans-serif">@relText</text>
                                 </g>
                             }
                         }
                     }
 
-                    <!-- Nodes (Radial Mind Map Cards) -->
+                    <!-- Nodes (Hierarchical Tree Concept Cards with Automatic Word Wrapping) -->
                     @foreach (var node in AppState.CurrentNodes)
                     {
                         var isSelected = AppState.SelectedNode?.Id == node.Id;
                         var isRoot = node.NodeType == "root";
                         var isSub = node.NodeType == "subconcept";
 
-                        var nodeWidth = isRoot ? 210 : (isSub ? 160 : 180);
-                        var nodeHeight = isRoot ? 72 : (isSub ? 52 : 62);
+                        var nodeWidth = isRoot ? 240 : (isSub ? 190 : 210);
+                        var nodeHeight = isRoot ? 82 : (isSub ? 64 : 72);
                         var halfW = nodeWidth / 2;
                         var halfH = nodeHeight / 2;
 
                         var nodeFill = isSelected ? "#1e293b" : (isRoot ? "#0f2038" : (isSub ? "#0b0f17" : "#111827"));
-                        var nodeStroke = isSelected ? "#38bdf8" : (isRoot ? "#38bdf8" : (isSub ? "#334155" : "#475569"));
+                        var nodeStroke = isSelected ? "#38bdf8" : (isRoot ? "#38bdf8" : (isSub ? "#334155" : "#64748b"));
+                        var badgeText = isRoot ? "MAIN TOPIC" : (isSub ? "SUBCONCEPT" : "KEY CONCEPT");
+                        var badgeColor = isRoot ? "#38bdf8" : (isSub ? "#94a3b8" : "#60a5fa");
 
                         <g id="node-g-@node.Id"
-                           class="graph-node"
+                           class="graph-node cursor-pointer"
                            data-node-id="@node.Id"
                            data-node-x="@node.X"
                            data-node-y="@node.Y"
@@ -215,21 +244,27 @@ else if (AppState.ActiveView == "workspace")
                            data-half-h="@halfH"
                            transform="translate(@(node.X - halfW), @(node.Y - halfH))"
                            @onclick="() => AppState.SelectNode(node.Id)">
-                            
+
                             <!-- Card Shape -->
-                            <rect width="@nodeWidth" height="@nodeHeight" rx="@(isRoot ? "12" : "8")"
+                            <rect width="@nodeWidth" height="@nodeHeight" rx="@(isRoot ? "14" : "10")"
                                   fill="@nodeFill"
                                   stroke="@nodeStroke"
-                                  stroke-width="@(isSelected ? "2.5" : (isRoot ? "2" : "1.25"))" />
+                                  stroke-width="@(isSelected ? "2.5" : (isRoot ? "2" : "1.5"))" />
 
-                            @if (isRoot)
-                            {
-                                <rect x="0" y="0" width="4" height="@nodeHeight" rx="2" fill="#38bdf8" />
-                            }
+                            <!-- Top Hierarchy Accent Bar -->
+                            <rect x="16" y="0" width="@(nodeWidth - 32)" height="@(isRoot ? "3" : "2")" rx="1" fill="@badgeColor" opacity="@(isSub ? "0.45" : "0.9")" />
 
-                            <!-- Concept Label & Subtitle -->
-                            <text x="14" y="@(isSub ? 26 : 30)" font-size="@(isRoot ? "12.5" : (isSub ? "10.5" : "11.5"))" font-weight="600" fill="#f8fafc" font-family="Plus Jakarta Sans">@node.Label</text>
-                            <text x="14" y="@(isSub ? 42 : 48)" font-size="@(isSub ? "8.5" : "9")" fill="#94a3b8" font-family="Plus Jakarta Sans">@(isRoot ? "Central Topic" : (isSub ? "Detail" : "Key Subtopic"))</text>
+                            <!-- HTML ForeignObject for Clean Multi-Line Text Wrapping & Center Alignment -->
+                            <foreignObject x="8" y="6" width="@(nodeWidth - 16)" height="@(nodeHeight - 10)" style="pointer-events: none;">
+                                <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding: 2px 6px; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif;">
+                                    <div style="font-size: 8.5px; font-weight: 700; letter-spacing: 0.08em; color: @badgeColor; text-transform: uppercase; margin-bottom: 3px; line-height: 1;">
+                                        @badgeText
+                                    </div>
+                                    <div style="font-size: @(isRoot ? "12.5px" : (isSub ? "11px" : "11.5px")); font-weight: 600; color: #f8fafc; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; max-width: 100%;">
+                                        @node.Label
+                                    </div>
+                                </div>
+                            </foreignObject>
                         </g>
                     }
                 </g>
@@ -937,41 +972,49 @@ else if (AppState.ActiveView == "settings")
         </div>
 
         <div class="bg-surface border border-line rounded-[18px] p-5 sm:p-8 shadow-card mb-6">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <div>
-                    <h3 class="text-base sm:text-[1.1rem] font-bold text-ink">In-Browser AI Engine</h3>
-                    <div class="text-[0.8rem] text-ink-muted">Run 100% locally in your browser with WebGPU (No server or Ollama required).</div>
+                    <h3 class="text-base sm:text-[1.1rem] font-bold text-ink">OpenRouter Cloud Engine</h3>
+                    <div class="text-[0.8rem] text-ink-muted">Fast free cloud model inference via OpenRouter API (<code class="font-mono text-accent">.env</code> configuration with automatic multi-model routing).</div>
                 </div>
                 <span class="text-xs px-2.5 py-1 rounded-full font-mono bg-accent/15 text-accent border border-accent/30 font-semibold">
-                    Qwen2.5-1.5B-Instruct
+                    @AppState.LlmService.DefaultModel
                 </span>
             </div>
 
-            <div class="p-4 rounded-xl bg-canvas border border-line mb-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-semibold text-ink">Model Status</span>
-                    <span class="text-xs font-mono text-ink-secondary">
-                        @if (AppState.LlmService is BlazorApp1.Services.WebLlmService webLlm)
-                        {
-                            @webLlm.StatusMessage
-                        }
+            @if (AppState.LlmService is BlazorApp1.Services.OpenRouterService openRouter)
+            {
+                <div class="p-4 rounded-xl bg-canvas border border-line mb-4 flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-ink">Status</span>
+                        <span class="text-xs font-mono @(openRouter.HasApiKey ? "text-emerald-400" : "text-amber-400")">
+                            @openRouter.StatusMessage
+                        </span>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-line/60">
+                        <label class="text-xs font-medium text-ink-secondary">Free Cloud Model</label>
+                        <select class="bg-surface border border-line text-ink rounded-lg px-3 py-1.5 text-xs font-mono outline-none focus:border-accent cursor-pointer"
+                                value="@openRouter.DefaultModel"
+                                @onchange="OnCloudModelChanged">
+                            @foreach (var m in BlazorApp1.Services.OpenRouterService.AvailableModels)
+                            {
+                                <option value="@m">@m</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <button class="bg-accent hover:bg-accent-hover text-white border-none rounded-lg px-4 py-2 text-[0.85rem] font-semibold cursor-pointer transition-colors"
+                            @onclick="TestCloudConnection">
+                        Verify OpenRouter Connection
+                    </button>
+                    <span class="text-[0.75rem] text-ink-muted">
+                        Set <code class="font-mono text-ink">OPENROUTER_API_KEY</code> in <code class="font-mono text-ink">.env</code>
                     </span>
                 </div>
-                @if (AppState.LlmService is BlazorApp1.Services.WebLlmService w && w.Progress > 0 && !w.IsReady)
-                {
-                    <div class="w-full bg-surface-raised rounded-full h-2 overflow-hidden">
-                        <div class="bg-accent h-2 transition-all duration-300" style="width: @((int)(w.Progress * 100))%"></div>
-                    </div>
-                    <div class="text-[0.7rem] text-ink-muted mt-1 text-right">@((int)(w.Progress * 100))% downloaded</div>
-                }
-            </div>
-
-            <div class="flex flex-wrap items-center gap-3">
-                <button class="bg-accent hover:bg-accent-hover text-white border-none rounded-lg px-4 py-2 text-[0.85rem] font-semibold cursor-pointer transition-colors"
-                        @onclick="InitializeWebLlmModel">
-                    Initialize / Preload In-Browser Model
-                </button>
-            </div>
+            }
         </div>
 
         <div class="bg-surface border border-line rounded-[18px] p-5 sm:p-8 shadow-card mb-6">
@@ -1059,19 +1102,26 @@ else if (AppState.ActiveView == "settings")
         }
     }
 
-    private async Task InitializeWebLlmModel()
+    private void OnCloudModelChanged(ChangeEventArgs e)
     {
-        if (AppState.LlmService is BlazorApp1.Services.WebLlmService webLlm)
+        if (e.Value is string selected && !string.IsNullOrWhiteSpace(selected))
         {
-            try
+            if (AppState.LlmService is BlazorApp1.Services.OpenRouterService openRouter)
             {
-                await webLlm.InitializeModelAsync();
+                openRouter.SetModel(selected);
             }
-            catch (Exception ex)
+            else if (AppState.LlmService is BlazorApp1.Services.GoogleAiStudioService googleAi)
             {
-                Console.WriteLine($"[WebLLM] Error: {ex.Message}");
+                googleAi.SetModel(selected);
             }
+            StateHasChanged();
         }
+    }
+
+    private async Task TestCloudConnection()
+    {
+        await AppState.RefreshLlmStatusAsync();
+        StateHasChanged();
     }
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
@@ -1158,6 +1208,16 @@ else if (AppState.ActiveView == "settings")
         hasSubmittedQuiz = false;
         quizSelections.Clear();
         await AppState.GenerateQuizForSelectedDocumentAsync();
+    }
+
+    private async Task RegenerateMap()
+    {
+        await AppState.RegenerateConceptMapForSelectedDocumentAsync();
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("conceptMapInteractions.resetTransform");
+        }
+        catch { }
     }
 
     private async Task GenerateCards()

@@ -13,6 +13,12 @@ public class RawConcept
     [JsonPropertyName("node_type")]
     public string NodeType { get; set; } = "concept";
 
+    [JsonPropertyName("parent_label")]
+    public string? ParentLabel { get; set; }
+
+    [JsonPropertyName("relationship")]
+    public string? Relationship { get; set; }
+
     [JsonPropertyName("source_passage_ids")]
     public List<int> SourcePassageIds { get; set; } = new();
 }

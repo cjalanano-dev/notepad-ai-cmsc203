@@ -144,7 +144,7 @@
         <!-- AI Engine -->
         <button class="flex items-center gap-3 px-3 py-2 rounded-xl border-none text-[0.84rem] font-medium cursor-pointer w-full text-left transition-all interactive-btn whitespace-nowrap @(AppState.IsSidebarCollapsed ? "md:justify-center md:px-0" : "") @(AppState.ActiveView == "settings" ? "bg-surface-hover text-ink font-semibold" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" 
                 @onclick='() => AppState.SetView("settings")' 
-                title="AI Engine & WebGPU Model">
+                title="AI Engine & OpenRouter Free Cloud Model">
             <svg class="w-4 h-4 flex-shrink-0 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
             </svg>
@@ -152,7 +152,7 @@
             {
                 <span class="flex items-center justify-between w-full">
                     <span>AI Engine</span>
-                    <span class="text-[0.65rem] px-1.5 py-0.5 rounded bg-accent-soft text-accent border border-accent-border font-mono font-semibold">WebGPU</span>
+                    <span class="text-[0.65rem] px-1.5 py-0.5 rounded bg-accent-soft text-accent border border-accent-border font-mono font-semibold">OpenRouter</span>
                 </span>
             }
         </button>

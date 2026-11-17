@@ -28,18 +28,19 @@ public class StudyService
     {
         if (passages.Count == 0) throw new ArgumentException("No passages available for quiz generation.");
 
-        var selected = VectorService.SelectRepresentativeChunks(passages, 12);
+        var selected = VectorService.SelectRepresentativeChunks(passages, 8);
         var passagesText = string.Join("\n\n", selected.Select(p => $"[Passage {p.Id}, page {p.PageNumber}]\n{p.Content}"));
 
         var systemPrompt =
-            "You are an educational quiz creator. Generate a multiple-choice quiz based strictly on the provided reviewer passages.\n" +
-            "RULES:\n" +
-            "1. Generate 3 to 6 high-quality multiple choice questions testing key concepts.\n" +
-            "2. Each question MUST have exactly 4 options.\n" +
-            "3. 'answer_index' must be 0, 1, 2, or 3 corresponding to the correct option in 'options'.\n" +
-            "4. Include a concise explanation and valid 'passage_ids' citing the exact supporting passages.\n" +
-            "5. Return strictly JSON matching:\n" +
-            "{\"items\": [{\"question\": \"string\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer_index\": 0, \"explanation\": \"string\", \"passage_ids\": [1]}]}";
+            "You are a university professor designing a rigorous, exam-level multiple-choice assessment based strictly on the provided lecture/reviewer passages.\n" +
+            "PEDAGOGICAL & DESIGN RULES:\n" +
+            "1. Generate 4 to 6 high-yield multiple-choice questions that test **conceptual understanding, cause-and-effect, and analytical application** (Bloom's Taxonomy)—avoid trivial word-matching questions.\n" +
+            "2. Each question MUST have exactly 4 plausible academic options ('options') of similar length and tone. Avoid obvious throwaway or joke distractors.\n" +
+            "3. 'answer_index' must be 0, 1, 2, or 3 corresponding to the single unambiguous correct option in 'options'.\n" +
+            "4. 'explanation' MUST act as a professor's solution walkthrough: explain **why the correct option is right** using evidence from the text, AND briefly clarify **why the main distractor is a common misconception**.\n" +
+            "5. Include valid 'passage_ids' citing the exact supporting passages.\n" +
+            "6. Return strictly JSON matching:\n" +
+            "{\"items\": [{\"question\": \"string\", \"options\": [\"Option 1\", \"Option 2\", \"Option 3\", \"Option 4\"], \"answer_index\": 0, \"explanation\": \"string\", \"passage_ids\": [1]}]}";
 
         var userPrompt = $"Reviewer: {docFilename}\n\nReviewer passages:\n{passagesText}";
 
@@ -87,16 +88,16 @@ public class StudyService
     {
         if (passages.Count == 0) throw new ArgumentException("No passages available for flashcard generation.");
 
-        var selected = VectorService.SelectRepresentativeChunks(passages, 12);
+        var selected = VectorService.SelectRepresentativeChunks(passages, 8);
         var passagesText = string.Join("\n\n", selected.Select(p => $"[Passage {p.Id}, page {p.PageNumber}]\n{p.Content}"));
 
         var systemPrompt =
-            "You are a study flashcard generator. Create a set of flashcards strictly grounded in the supplied reviewer passages.\n" +
-            "RULES:\n" +
-            "1. Create 4 to 8 flashcards covering core concepts and definitions.\n" +
-            "2. 'front' should be a focused concept question or prompt.\n" +
-            "3. 'back' should be a clear, accurate explanation or answer from the text.\n" +
-            "4. 'passage_ids' should contain the IDs of the supporting passages.\n" +
+            "You are an academic study coach creating high-retention active-recall flashcards strictly grounded in the supplied reviewer passages.\n" +
+            "PEDAGOGICAL RULES:\n" +
+            "1. Create 5 to 8 high-yield flashcards covering core definitions, mechanisms, comparisons, and cause-and-effect relationships.\n" +
+            "2. 'front' MUST be a targeted active-recall question (e.g., 'How does X regulate Y?', 'What is the primary distinction between A and B?') rather than a vague one-word label.\n" +
+            "3. 'back' MUST be a crisp, memorable 1 to 3 sentence answer grounded strictly in the text, highlighting the core mechanism or definition.\n" +
+            "4. 'passage_ids' must contain the IDs of the supporting passages.\n" +
             "5. Return strictly JSON matching:\n" +
             "{\"items\": [{\"front\": \"string\", \"back\": \"string\", \"passage_ids\": [1]}]}";
 
@@ -244,12 +245,14 @@ public class StudyService
         var rubricText = string.Join("\n", EssayRubric.Select(r => $"- {r.Criterion} ({r.Points} pts): {r.Description}"));
 
         var systemPrompt =
-            $"Grade the learner's essay in response to the prompt based strictly on the reviewer text.\n" +
-            $"Rubric (100 pts total):\n{rubricText}\n\n" +
-            "RULES:\n" +
-            "1. Score each criterion between 0 and its max points.\n" +
-            "2. Provide detailed overall_feedback, strengths, and next_steps.\n" +
-            "3. Return strictly JSON matching:\n" +
+            $"You are a rigorous yet encouraging university professor grading a student's essay submission based strictly on the provided study passages.\n" +
+            $"Academic Rubric (100 pts total):\n{rubricText}\n\n" +
+            "PEDAGOGICAL GRADING RULES:\n" +
+            "1. Score each criterion fairly between 0 and its max points based on how accurately the student synthesized and cited concepts from the reviewer passages.\n" +
+            "2. In 'overall_feedback', write a constructive professor's evaluation addressing the student directly: acknowledge their thesis, point out any missing concepts or inaccuracies relative to the source text, and explain how to deepen their analysis.\n" +
+            "3. In 'strengths', highlight specific strong arguments or accurate connections made by the student.\n" +
+            "4. In 'next_steps', provide 2 to 3 concrete, actionable revision steps referencing specific concepts from the passages.\n" +
+            "5. Return strictly JSON matching:\n" +
             "{\"criteria\": [{\"criterion\": \"Claim and Thesis\", \"score\": 18, \"feedback\": \"...\"}], \"overall_feedback\": \"string\", \"strengths\": \"string\", \"next_steps\": [\"...\"]}";
 
         var userPrompt = $"Reviewer: {docFilename}\nPrompt: {prompt}\n\nEssay Submission:\n{essaySubmission}\n\nReviewer Passages:\n{passagesText}";

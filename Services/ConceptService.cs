@@ -28,29 +28,37 @@ public class ConceptService
         }
 
         var validChunkIds = allChunks.Select(c => c.Id).ToHashSet();
-        var selectedChunks = VectorService.SelectRepresentativeChunks(allChunks, 15);
+        var selectedChunks = VectorService.SelectRepresentativeChunks(allChunks, 8);
         var passagesText = BuildPromptPassages(selectedChunks);
 
-        var systemPrompt = 
-            "You are a mind-map generator. You build a hierarchical, connected radial mind-map from the text.\n" +
-            "RULES:\n" +
-            "1. Extract 1 primary central topic as node_type='root'.\n" +
-            "2. Extract 4 to 8 primary subtopics as node_type='concept'.\n" +
-            "3. Extract 3 to 6 detailed child concepts as node_type='subconcept'.\n" +
-            "4. Every concept must have an explanation of 2 to 3 sentences grounded in the text and valid 'source_passage_ids'.\n" +
-            "5. CRITICAL: Every single concept and subconcept MUST be connected in 'relationships'. No orphaned nodes.\n" +
-            "   - Connect 'root' to each 'concept'.\n" +
-            "   - Connect each 'concept' to its child 'subconcept' nodes.\n" +
-            "   - Both 'source_label' and 'target_label' MUST match the exact concept labels defined in 'concepts'.\n" +
-            "   - 'relationship' should be a concise active verb or phrase (e.g. 'comprises', 'regulates', 'leads to', 'consists of').\n" +
-            "6. Return strictly JSON conforming to this structure:\n" +
+        var systemPrompt =
+            "You are a distinguished university professor and curriculum architect. Build a rigorous, hierarchical 3-level tree concept map from the provided lecture/study passages so a student can master the subject's taxonomy, mechanisms, and cause-and-effect relationships.\n" +
+            "STRICT PEDAGOGICAL & STRUCTURAL RULES:\n" +
+            "1. Level 1 (Root): Extract exactly 1 central overarching academic subject with node_type='root'.\n" +
+            "2. Level 2 (Primary Concepts): Extract 3 to 5 foundational pillars, core theories, or major categories with node_type='concept'. Set their 'parent_label' to the exact label of the 'root' node.\n" +
+            "3. Level 3 (Subconcepts): Extract 4 to 8 specific mechanisms, sub-classifications, formulas, or key components with node_type='subconcept'. Each subconcept MUST set its 'parent_label' to the exact label of the Level 2 'concept' it belongs to.\n" +
+            "4. LABEL LENGTH: Every 'label' MUST be a crisp academic term (2 to 4 words, maximum 28 characters) so it fits cleanly inside a tree node card.\n" +
+            "5. RELATIONSHIP LABEL: Every 'relationship' verb phrase MUST be a precise academic linker (1 to 3 words, maximum 18 characters, e.g., 'classified into', 'governed by', 'drives', 'comprises', 'synthesizes').\n" +
+            "6. PROFESSOR EXPLANATION: Every node's 'explanation' must be 2 to 4 clear, high-yield sentences strictly grounded in the text. It must state: (a) what the concept is (definition), (b) how it works or connects to its parent concept (mechanism), and (c) why it matters in the context of the material, plus valid 'source_passage_ids'.\n" +
+            "7. Return strictly valid JSON matching this schema:\n" +
             "{\n" +
             "  \"title\": \"string\",\n" +
-            "  \"concepts\": [{\"label\": \"string\", \"explanation\": \"string\", \"node_type\": \"root|concept|subconcept\", \"source_passage_ids\": [1]}],\n" +
-            "  \"relationships\": [{\"source_label\": \"string\", \"target_label\": \"string\", \"relationship\": \"string\"}]\n" +
+            "  \"concepts\": [\n" +
+            "    {\n" +
+            "      \"label\": \"Short Topic Name\",\n" +
+            "      \"explanation\": \"Definition, mechanism, and academic significance grounded in the text.\",\n" +
+            "      \"node_type\": \"root|concept|subconcept\",\n" +
+            "      \"parent_label\": \"Exact Parent Label or empty for root\",\n" +
+            "      \"relationship\": \"short verb phrase from parent\",\n" +
+            "      \"source_passage_ids\": [1]\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"relationships\": [\n" +
+            "    {\"source_label\": \"Parent Label\", \"target_label\": \"Child Label\", \"relationship\": \"short verb\"}\n" +
+            "  ]\n" +
             "}";
 
-        var userPrompt = $"Document: {docTitle}\n\nSource Passages:\n{passagesText}\n\nGenerate the connected mind map JSON now:";
+        var userPrompt = $"Document: {docTitle}\n\nSource Passages:\n{passagesText}\n\nGenerate the hierarchical tree concept map JSON now:";
 
         ExtractionResult? extraction = null;
         try
@@ -62,233 +70,335 @@ public class ConceptService
             Console.WriteLine($"[ConceptService] LLM extraction error: {ex.Message}");
         }
 
-        // If extraction failed or returned no concepts, build a deterministic fallback mind map from text
         if (extraction == null || extraction.Concepts == null || extraction.Concepts.Count == 0)
         {
             extraction = GenerateFallbackMindMap(docTitle, allChunks);
         }
 
-        // Ensure at least one root node exists
-        if (!extraction.Concepts.Any(c => c.NodeType?.ToLowerInvariant() == "root"))
+        // Deduplicate concepts by normalized label and clean up strings
+        var cleanedConcepts = new List<RawConcept>();
+        var seenLabels = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var c in extraction.Concepts)
         {
-            if (extraction.Concepts.Count > 0)
-            {
-                extraction.Concepts[0].NodeType = "root";
-            }
-            else
-            {
-                extraction.Concepts.Add(new RawConcept
-                {
-                    Label = Path.GetFileNameWithoutExtension(docTitle),
-                    Explanation = $"Primary document overview for {docTitle}.",
-                    NodeType = "root",
-                    SourcePassageIds = allChunks.Take(2).Select(c => c.Id).ToList()
-                });
-            }
+            var cleanLabel = CleanLabel(c.Label);
+            if (string.IsNullOrWhiteSpace(cleanLabel) || seenLabels.Contains(cleanLabel))
+                continue;
+
+            c.Label = cleanLabel;
+            c.ParentLabel = CleanLabel(c.ParentLabel);
+            c.Relationship = CleanRelationship(c.Relationship);
+            seenLabels.Add(cleanLabel);
+            cleanedConcepts.Add(c);
+        }
+
+        if (cleanedConcepts.Count == 0)
+        {
+            extraction = GenerateFallbackMindMap(docTitle, allChunks);
+            cleanedConcepts = extraction.Concepts;
+        }
+
+        // 1. Identify Root Node (Level 1)
+        var rawRoot = cleanedConcepts.FirstOrDefault(c => c.NodeType?.Equals("root", StringComparison.OrdinalIgnoreCase) == true)
+                      ?? cleanedConcepts[0];
+        rawRoot.NodeType = "root";
+
+        var remaining = cleanedConcepts
+            .Where(c => !string.Equals(c.Label, rawRoot.Label, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        // 2. Identify Primary Concepts (Level 2) and Subconcepts (Level 3)
+        var rawPrimary = remaining
+            .Where(c => c.NodeType?.Equals("concept", StringComparison.OrdinalIgnoreCase) == true)
+            .ToList();
+
+        var rawSubs = remaining
+            .Where(c => c.NodeType?.Equals("subconcept", StringComparison.OrdinalIgnoreCase) == true)
+            .ToList();
+
+        // If the LLM didn't distinguish concept vs subconcept properly, split them into a balanced tree
+        if (rawPrimary.Count == 0 && remaining.Count > 0)
+        {
+            int primaryCount = Math.Clamp((int)Math.Ceiling(remaining.Count / 3.0), 2, 5);
+            rawPrimary = remaining.Take(primaryCount).ToList();
+            rawSubs = remaining.Skip(primaryCount).ToList();
+        }
+        else if (rawPrimary.Count > 5)
+        {
+            var overflow = rawPrimary.Skip(5).ToList();
+            rawPrimary = rawPrimary.Take(5).ToList();
+            rawSubs.InsertRange(0, overflow);
         }
 
         var nodes = new List<ConceptNode>();
+        var edges = new List<ConceptEdge>();
         var labelToNode = new Dictionary<string, ConceptNode>(StringComparer.OrdinalIgnoreCase);
 
-        // Radial Mind Map Coordinate Calculation (Central Root with radiating branches)
-        const double centerX = 450;
-        const double centerY = 320;
+        // Create Root Node (temporarily X=600, Y=90; X will be centered over its children after layout)
+        int nextNodeId = 1;
+        int nextEdgeId = 1;
 
-        var rawRoot = extraction.Concepts.FirstOrDefault(c => c.NodeType?.ToLowerInvariant() == "root") ?? extraction.Concepts[0];
         var rootNode = new ConceptNode
         {
-            Id = 1,
-            Label = rawRoot.Label.Trim(),
-            Explanation = rawRoot.Explanation?.Trim() ?? "",
+            Id = nextNodeId++,
+            Label = rawRoot.Label,
+            Explanation = string.IsNullOrWhiteSpace(rawRoot.Explanation)
+                ? $"Central topic overview for {docTitle}."
+                : rawRoot.Explanation.Trim(),
             NodeType = "root",
-            X = centerX,
-            Y = centerY,
-            SourceChunkIds = rawRoot.SourcePassageIds.Where(id => validChunkIds.Contains(id)).ToList()
+            X = 600,
+            Y = 95,
+            SourceChunkIds = FilterValidChunks(rawRoot.SourcePassageIds, validChunkIds, allChunks, 0)
         };
-        if (rootNode.SourceChunkIds.Count == 0 && allChunks.Count > 0)
-        {
-            rootNode.SourceChunkIds.Add(allChunks[0].Id);
-        }
         nodes.Add(rootNode);
         labelToNode[rootNode.Label] = rootNode;
 
-        var otherConcepts = extraction.Concepts
-            .Where(c => !string.Equals(c.Label.Trim(), rootNode.Label, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        var primaryBranches = otherConcepts.Where(c => c.NodeType?.ToLowerInvariant() != "subconcept").ToList();
-        var subBranches = otherConcepts.Where(c => c.NodeType?.ToLowerInvariant() == "subconcept").ToList();
-
-        // If no primary branches distinguished, split evenly
-        if (primaryBranches.Count == 0 && otherConcepts.Count > 0)
+        // Create Primary Concept Nodes
+        var primaryNodes = new List<ConceptNode>();
+        for (int i = 0; i < rawPrimary.Count; i++)
         {
-            primaryBranches = otherConcepts.Take(Math.Min(6, otherConcepts.Count)).ToList();
-            subBranches = otherConcepts.Skip(primaryBranches.Count).ToList();
-        }
-
-        int nextId = 2;
-        const double primaryRadius = 260;
-        double branchAngleStep = primaryBranches.Count > 0 ? (2 * Math.PI) / primaryBranches.Count : 1;
-
-        // Position Primary Concept Nodes around the root in a radial mind map circle
-        for (int i = 0; i < primaryBranches.Count; i++)
-        {
-            var raw = primaryBranches[i];
-            double angle = i * branchAngleStep - (Math.PI / 2); // Start at top
-            double x = Math.Round(centerX + primaryRadius * Math.Cos(angle));
-            double y = Math.Round(centerY + (primaryRadius * 0.75) * Math.Sin(angle)); // ellipse for 16:9 canvas
-
-            var node = new ConceptNode
+            var raw = rawPrimary[i];
+            var pNode = new ConceptNode
             {
-                Id = nextId++,
-                Label = raw.Label.Trim(),
+                Id = nextNodeId++,
+                Label = raw.Label,
                 Explanation = raw.Explanation?.Trim() ?? "",
                 NodeType = "concept",
-                X = x,
-                Y = y,
-                SourceChunkIds = raw.SourcePassageIds.Where(id => validChunkIds.Contains(id)).ToList()
+                X = 0,
+                Y = 285,
+                SourceChunkIds = FilterValidChunks(raw.SourcePassageIds, validChunkIds, allChunks, i)
             };
-            if (node.SourceChunkIds.Count == 0 && allChunks.Count > 0)
-            {
-                node.SourceChunkIds.Add(allChunks[Math.Min(i, allChunks.Count - 1)].Id);
-            }
-
-            nodes.Add(node);
-            labelToNode[node.Label] = node;
+            primaryNodes.Add(pNode);
+            nodes.Add(pNode);
+            labelToNode[pNode.Label] = pNode;
         }
 
-        // Position Subconcepts branching outward from primary concepts
-        for (int i = 0; i < subBranches.Count; i++)
+        // Map each Subconcept to its true Parent Primary Concept using:
+        // (a) explicit parent_label on the concept, OR
+        // (b) explicit entry in extraction.Relationships, OR
+        // (c) balanced round-robin fallback across primary concepts
+        var childrenByPrimaryId = primaryNodes.ToDictionary(p => p.Id, _ => new List<(ConceptNode Node, string Rel)>());
+
+        for (int i = 0; i < rawSubs.Count; i++)
         {
-            var raw = subBranches[i];
-            var parentIndex = i % (primaryBranches.Count > 0 ? primaryBranches.Count : 1);
-            var parentNode = primaryBranches.Count > parentIndex ? labelToNode.GetValueOrDefault(primaryBranches[parentIndex].Label.Trim()) : null;
-
-            double parentX = parentNode?.X ?? centerX;
-            double parentY = parentNode?.Y ?? centerY;
-            double angleOutward = Math.Atan2(parentY - centerY, parentX - centerX) + ((i % 2 == 0 ? 0.35 : -0.35));
-            const double subRadius = 140;
-
-            double x = Math.Round(parentX + subRadius * Math.Cos(angleOutward));
-            double y = Math.Round(parentY + subRadius * Math.Sin(angleOutward));
-
-            var node = new ConceptNode
+            var raw = rawSubs[i];
+            var sNode = new ConceptNode
             {
-                Id = nextId++,
-                Label = raw.Label.Trim(),
+                Id = nextNodeId++,
+                Label = raw.Label,
                 Explanation = raw.Explanation?.Trim() ?? "",
                 NodeType = "subconcept",
-                X = x,
-                Y = y,
-                SourceChunkIds = raw.SourcePassageIds.Where(id => validChunkIds.Contains(id)).ToList()
+                X = 0,
+                Y = 490,
+                SourceChunkIds = FilterValidChunks(raw.SourcePassageIds, validChunkIds, allChunks, i + primaryNodes.Count)
             };
-            if (node.SourceChunkIds.Count == 0 && allChunks.Count > 0)
+            nodes.Add(sNode);
+            labelToNode[sNode.Label] = sNode;
+
+            ConceptNode? matchedParent = null;
+            string relLabel = !string.IsNullOrWhiteSpace(raw.Relationship) ? raw.Relationship! : "";
+
+            // Try explicit parent_label first
+            if (!string.IsNullOrWhiteSpace(raw.ParentLabel))
             {
-                node.SourceChunkIds.Add(allChunks[Math.Min(i, allChunks.Count - 1)].Id);
+                matchedParent = FindBestMatch(raw.ParentLabel, primaryNodes);
             }
 
-            nodes.Add(node);
-            labelToNode[node.Label] = node;
-        }
-
-        // Resolve Edges & Guarantee Full Mind Map Connectivity
-        var edges = new List<ConceptEdge>();
-        var connectedNodeIds = new HashSet<int>();
-        int edgeId = 1;
-
-        if (extraction.Relationships != null)
-        {
-            foreach (var r in extraction.Relationships)
+            // Try relationships array next
+            if (matchedParent == null && extraction.Relationships != null)
             {
-                if (string.IsNullOrWhiteSpace(r.SourceLabel) || string.IsNullOrWhiteSpace(r.TargetLabel)) continue;
+                var rel = extraction.Relationships.FirstOrDefault(r =>
+                    IsLabelMatch(r.TargetLabel, raw.Label) &&
+                    !IsLabelMatch(r.SourceLabel, rootNode.Label));
 
-                // Fuzzy match or exact match labels
-                var srcNode = FindMatchingNode(r.SourceLabel, labelToNode);
-                var tgtNode = FindMatchingNode(r.TargetLabel, labelToNode);
-
-                if (srcNode != null && tgtNode != null && srcNode.Id != tgtNode.Id)
+                if (rel != null)
                 {
-                    // Prevent duplicate reciprocal edges
-                    if (!edges.Any(e => (e.SourceNodeId == srcNode.Id && e.TargetNodeId == tgtNode.Id) ||
-                                        (e.SourceNodeId == tgtNode.Id && e.TargetNodeId == srcNode.Id)))
+                    matchedParent = FindBestMatch(rel.SourceLabel, primaryNodes);
+                    if (string.IsNullOrWhiteSpace(relLabel))
                     {
-                        edges.Add(new ConceptEdge
-                        {
-                            Id = edgeId++,
-                            SourceNodeId = srcNode.Id,
-                            TargetNodeId = tgtNode.Id,
-                            Relationship = string.IsNullOrWhiteSpace(r.Relationship) ? "connects to" : r.Relationship.Trim()
-                        });
-                        connectedNodeIds.Add(srcNode.Id);
-                        connectedNodeIds.Add(tgtNode.Id);
+                        relLabel = CleanRelationship(rel.Relationship);
                     }
                 }
             }
+
+            // Balanced fallback: assign to the primary node with the fewest children so far
+            if (matchedParent == null && primaryNodes.Count > 0)
+            {
+                matchedParent = primaryNodes
+                    .OrderBy(p => childrenByPrimaryId[p.Id].Count)
+                    .First();
+            }
+
+            if (string.IsNullOrWhiteSpace(relLabel))
+            {
+                relLabel = "includes";
+            }
+
+            if (matchedParent != null)
+            {
+                childrenByPrimaryId[matchedParent.Id].Add((sNode, relLabel));
+            }
         }
 
-        // Connect Root to each Primary Concept that has no edge
-        var primaryNodes = nodes.Where(n => n.NodeType == "concept").ToList();
+        // ---------------------------------------------------------------------------
+        // HIERARCHICAL TREE LAYOUT ALGORITHM (Zero-Overlap Top-Down Tidy Tree)
+        // ---------------------------------------------------------------------------
+        // Each primary branch is allocated horizontal width proportional to its leaf count.
+        const double leafSlotWidth = 230.0;
+        const double minPrimarySlotWidth = 250.0;
+        const double canvasCenterX = 640.0;
+        const double level1Y = 90.0;
+        const double level2Y = 285.0;
+        const double level3Y = 485.0;
+        const double level3StaggerY = 555.0; // slight vertical stagger when many leaves exist
+
+        var subtreeWidths = new List<double>();
         foreach (var pNode in primaryNodes)
         {
-            if (!edges.Any(e => (e.SourceNodeId == rootNode.Id && e.TargetNodeId == pNode.Id) ||
-                                (e.SourceNodeId == pNode.Id && e.TargetNodeId == rootNode.Id)))
-            {
-                edges.Add(new ConceptEdge
-                {
-                    Id = edgeId++,
-                    SourceNodeId = rootNode.Id,
-                    TargetNodeId = pNode.Id,
-                    Relationship = "branches to"
-                });
-                connectedNodeIds.Add(pNode.Id);
-            }
+            int childCount = childrenByPrimaryId[pNode.Id].Count;
+            double width = Math.Max(minPrimarySlotWidth, childCount * leafSlotWidth);
+            subtreeWidths.Add(width);
         }
 
-        // Connect any remaining orphaned Subconcept to the closest primary concept
-        var subNodes = nodes.Where(n => n.NodeType == "subconcept").ToList();
-        foreach (var sNode in subNodes)
+        double totalTreeWidth = subtreeWidths.Sum();
+        double currentLeftX = canvasCenterX - (totalTreeWidth / 2.0);
+
+        for (int i = 0; i < primaryNodes.Count; i++)
         {
-            if (!connectedNodeIds.Contains(sNode.Id) || !edges.Any(e => e.SourceNodeId == sNode.Id || e.TargetNodeId == sNode.Id))
-            {
-                // Find nearest primary node by distance
-                var nearest = primaryNodes
-                    .OrderBy(p => Math.Pow(p.X - sNode.X, 2) + Math.Pow(p.Y - sNode.Y, 2))
-                    .FirstOrDefault() ?? rootNode;
+            var pNode = primaryNodes[i];
+            double branchWidth = subtreeWidths[i];
+            double branchCenterX = currentLeftX + (branchWidth / 2.0);
 
-                edges.Add(new ConceptEdge
+            pNode.X = Math.Round(branchCenterX);
+            pNode.Y = level2Y;
+
+            // Determine relationship label from Root -> Primary Concept
+            var rawP = rawPrimary[i];
+            string rootToPrimaryRel = !string.IsNullOrWhiteSpace(rawP.Relationship) ? rawP.Relationship! : "";
+            if (string.IsNullOrWhiteSpace(rootToPrimaryRel) && extraction.Relationships != null)
+            {
+                var foundRel = extraction.Relationships.FirstOrDefault(r =>
+                    IsLabelMatch(r.TargetLabel, pNode.Label) && IsLabelMatch(r.SourceLabel, rootNode.Label))
+                    ?? extraction.Relationships.FirstOrDefault(r => IsLabelMatch(r.TargetLabel, pNode.Label));
+
+                if (foundRel != null)
                 {
-                    Id = edgeId++,
-                    SourceNodeId = nearest.Id,
-                    TargetNodeId = sNode.Id,
-                    Relationship = "details"
-                });
-                connectedNodeIds.Add(sNode.Id);
+                    rootToPrimaryRel = CleanRelationship(foundRel.Relationship);
+                }
             }
+            if (string.IsNullOrWhiteSpace(rootToPrimaryRel))
+            {
+                rootToPrimaryRel = "covers";
+            }
+
+            edges.Add(new ConceptEdge
+            {
+                Id = nextEdgeId++,
+                SourceNodeId = rootNode.Id,
+                TargetNodeId = pNode.Id,
+                Relationship = rootToPrimaryRel
+            });
+
+            // Position this Primary Concept's children (Level 3 Subconcepts) evenly inside [currentLeftX, currentLeftX + branchWidth]
+            var children = childrenByPrimaryId[pNode.Id];
+            if (children.Count > 0)
+            {
+                double childStep = branchWidth / children.Count;
+                for (int cIndex = 0; cIndex < children.Count; cIndex++)
+                {
+                    var (childNode, childRel) = children[cIndex];
+                    double childX = currentLeftX + (childStep * (cIndex + 0.5));
+                    childNode.X = Math.Round(childX);
+                    // Alternate Y slightly when a branch has >= 3 children so edge pills & cards have extra breathing room
+                    childNode.Y = (children.Count >= 3 && (cIndex % 2 == 1)) ? level3StaggerY : level3Y;
+
+                    edges.Add(new ConceptEdge
+                    {
+                        Id = nextEdgeId++,
+                        SourceNodeId = pNode.Id,
+                        TargetNodeId = childNode.Id,
+                        Relationship = childRel
+                    });
+                }
+            }
+
+            currentLeftX += branchWidth;
         }
+
+        // Center the Root Node directly above the midpoint of the primary concepts
+        if (primaryNodes.Count > 0)
+        {
+            double minPrimaryX = primaryNodes.First().X;
+            double maxPrimaryX = primaryNodes.Last().X;
+            rootNode.X = Math.Round((minPrimaryX + maxPrimaryX) / 2.0);
+        }
+        else
+        {
+            rootNode.X = canvasCenterX;
+        }
+        rootNode.Y = level1Y;
 
         return (nodes, edges);
     }
 
-    private ConceptNode? FindMatchingNode(string label, Dictionary<string, ConceptNode> lookup)
+    private static List<int> FilterValidChunks(List<int>? rawIds, HashSet<int> validIds, List<SourceChunkItem> allChunks, int fallbackIndex)
+    {
+        var list = rawIds?.Where(id => validIds.Contains(id)).Distinct().ToList() ?? new List<int>();
+        if (list.Count == 0 && allChunks.Count > 0)
+        {
+            list.Add(allChunks[fallbackIndex % allChunks.Count].Id);
+        }
+        return list;
+    }
+
+    private static string CleanLabel(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+        var clean = input.Trim().Trim('#', '*', '-', '"', '\'', ' ');
+        if (clean.Length > 42)
+        {
+            clean = clean.Substring(0, 40).Trim() + "…";
+        }
+        return clean;
+    }
+
+    private static string CleanRelationship(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+        var clean = input.Trim().Trim('#', '*', '-', '"', '\'', ' ');
+        if (clean.Length > 20)
+        {
+            clean = clean.Substring(0, 18).Trim() + "…";
+        }
+        return clean;
+    }
+
+    private static bool IsLabelMatch(string? a, string? b)
+    {
+        if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b)) return false;
+        var ca = a.Trim();
+        var cb = b.Trim();
+        return string.Equals(ca, cb, StringComparison.OrdinalIgnoreCase) ||
+               ca.Contains(cb, StringComparison.OrdinalIgnoreCase) ||
+               cb.Contains(ca, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static ConceptNode? FindBestMatch(string label, List<ConceptNode> candidates)
     {
         var trimmed = label.Trim();
-        if (lookup.TryGetValue(trimmed, out var exact)) return exact;
+        var exact = candidates.FirstOrDefault(c => string.Equals(c.Label, trimmed, StringComparison.OrdinalIgnoreCase));
+        if (exact != null) return exact;
 
-        // Partial match
-        foreach (var kvp in lookup)
-        {
-            if (kvp.Key.Contains(trimmed, StringComparison.OrdinalIgnoreCase) ||
-                trimmed.Contains(kvp.Key, StringComparison.OrdinalIgnoreCase))
-            {
-                return kvp.Value;
-            }
-        }
-        return null;
+        return candidates.FirstOrDefault(c =>
+            c.Label.Contains(trimmed, StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Contains(c.Label, StringComparison.OrdinalIgnoreCase));
     }
 
     private ExtractionResult GenerateFallbackMindMap(string docTitle, List<SourceChunkItem> chunks)
     {
-        var titleClean = Path.GetFileNameWithoutExtension(docTitle).Replace("-", " ").Replace("_", " ");
+        var titleClean = CleanLabel(Path.GetFileNameWithoutExtension(docTitle).Replace("-", " ").Replace("_", " "));
+        if (string.IsNullOrWhiteSpace(titleClean)) titleClean = "Document Overview";
+
         var result = new ExtractionResult
         {
             Title = titleClean,
@@ -297,7 +407,7 @@ public class ConceptService
                 new RawConcept
                 {
                     Label = titleClean,
-                    Explanation = $"Central topic analyzing {titleClean}.",
+                    Explanation = $"Central overview and core concepts extracted from {docTitle}.",
                     NodeType = "root",
                     SourcePassageIds = chunks.Take(2).Select(c => c.Id).ToList()
                 }
@@ -305,32 +415,41 @@ public class ConceptService
             Relationships = new List<RawRelationship>()
         };
 
-        // Extract key paragraphs as concept branches
-        var branchIndex = 1;
-        for (int i = 0; i < Math.Min(6, chunks.Count); i++)
+        var primaryLabels = new List<string>();
+        int maxChunks = Math.Min(7, chunks.Count);
+
+        for (int i = 0; i < maxChunks; i++)
         {
             var chunk = chunks[i];
-            var firstLine = chunk.Content.Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
-            var label = firstLine.Trim().TrimStart('#', '-', '*', ' ');
-            if (label.Length > 28) label = label.Substring(0, 28) + "...";
-            if (string.IsNullOrWhiteSpace(label)) label = $"Topic Section {branchIndex}";
+            var firstLine = chunk.Content
+                .Split(new[] { '\r', '\n', '.' }, StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault() ?? $"Key Topic {i + 1}";
+
+            var words = firstLine.Trim().TrimStart('#', '-', '*', ' ')
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Take(4);
+            var label = CleanLabel(string.Join(" ", words));
+            if (string.IsNullOrWhiteSpace(label)) label = $"Concept {i + 1}";
+
+            bool isPrimary = i < 3;
+            string parentLabel = isPrimary
+                ? titleClean
+                : (primaryLabels.Count > 0 ? primaryLabels[i % primaryLabels.Count] : titleClean);
+
+            if (isPrimary)
+            {
+                primaryLabels.Add(label);
+            }
 
             result.Concepts.Add(new RawConcept
             {
                 Label = label,
-                Explanation = chunk.Content.Length > 160 ? chunk.Content.Substring(0, 160) + "..." : chunk.Content,
-                NodeType = (branchIndex <= 4) ? "concept" : "subconcept",
+                Explanation = chunk.Content.Length > 200 ? chunk.Content.Substring(0, 200).Trim() + "..." : chunk.Content.Trim(),
+                NodeType = isPrimary ? "concept" : "subconcept",
+                ParentLabel = parentLabel,
+                Relationship = isPrimary ? "key pillar" : "details",
                 SourcePassageIds = new List<int> { chunk.Id }
             });
-
-            result.Relationships.Add(new RawRelationship
-            {
-                SourceLabel = titleClean,
-                TargetLabel = label,
-                Relationship = "explores"
-            });
-
-            branchIndex++;
         }
 
         return result;
@@ -345,12 +464,14 @@ public class ConceptService
     {
         var sourceText = string.Join("\n\n", passages.Select(p => $"[Passage {p.Id}, page {p.PageNumber}]\n{p.Content}"));
         var systemPrompt =
-            "You are a patient tutor. Explain the named concept in 2 to 4 clear, " +
-            "beginner-friendly sentences using only the supplied reviewer passages. " +
-            "Explain what it means and how it works when the source supports that. " +
-            "Do not add outside facts or guess. Cite supporting ideas with the given " +
-            "page markers, such as [p. 2]. If the passages do not explain the concept, " +
-            "say what information is missing. Return only the explanation.";
+            "You are a dedicated university professor explaining a core concept to a student.\n" +
+            "RULES:\n" +
+            "1. Use ONLY the supplied reviewer passages—never invent outside facts.\n" +
+            "2. Structure your explanation clearly in 3 to 4 sentences:\n" +
+            "   - **Definition**: What the concept is.\n" +
+            "   - **Mechanism / Context**: How it works or operates according to the source text.\n" +
+            "   - **Key Takeaway**: Why it is important to remember for an exam.\n" +
+            "3. Cite supporting ideas inline with page markers such as `[p. 2]`.";
 
         var userPrompt = $"Reviewer: {docTitle}\nConcept: {conceptLabel}\n\nLinked reviewer passages:\n{sourceText}";
 
