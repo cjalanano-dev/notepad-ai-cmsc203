@@ -10,14 +10,16 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-// OpenRouter Free Cloud LLM Engine (Default: baidu/ernie-5.5-flash-preview:free via .env / appsettings)
+// OpenRouter Free Cloud LLM Engine with Groq fallback
 builder.Services.AddSingleton<OpenRouterService>(sp =>
 {
     var http = new HttpClient();
     var config = sp.GetRequiredService<IConfiguration>();
     var apiKey = config["OpenRouter:ApiKey"] ?? config["OPENROUTER_API_KEY"] ?? "";
     var model = config["OpenRouter:Model"] ?? config["OPENROUTER_MODEL"] ?? "baidu/ernie-5.5-flash-preview:free";
-    return new OpenRouterService(http, apiKey, model);
+    var groqApiKey = config["Groq:ApiKey"] ?? config["GROQ_API_KEY"] ?? "";
+    var groqModel = config["Groq:Model"] ?? config["GROQ_MODEL"] ?? "qwen/qwen3.8-27b";
+    return new OpenRouterService(http, apiKey, model, groqApiKey, groqModel);
 });
 builder.Services.AddSingleton<ILlmService>(sp => sp.GetRequiredService<OpenRouterService>());
 

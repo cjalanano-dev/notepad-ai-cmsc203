@@ -9,6 +9,8 @@ public class OpenRouterService : ILlmService
     private readonly HttpClient _http;
     private string _apiKey;
     private string _selectedModel;
+    private string _groqApiKey;
+    private string _groqModel;
 
     public static readonly List<string> AvailableModels = new()
     {
@@ -30,13 +32,21 @@ public class OpenRouterService : ILlmService
 
     public string DefaultModel => _selectedModel;
     public bool HasApiKey => !string.IsNullOrWhiteSpace(_apiKey);
+    public bool HasGroqFallback => !string.IsNullOrWhiteSpace(_groqApiKey);
     public string StatusMessage { get; private set; } = "Ready";
 
-    public OpenRouterService(HttpClient http, string apiKey = "", string defaultModel = "baidu/ernie-5.5-flash-preview:free")
+    public OpenRouterService(
+        HttpClient http, 
+        string apiKey = "", 
+        string defaultModel = "baidu/ernie-5.5-flash-preview:free",
+        string groqApiKey = "",
+        string groqModel = "qwen/qwen3.8-27b")
     {
         _http = http;
         _apiKey = apiKey?.Trim() ?? string.Empty;
         _selectedModel = NormalizeModelId(defaultModel);
+        _groqApiKey = groqApiKey?.Trim() ?? string.Empty;
+        _groqModel = string.IsNullOrWhiteSpace(groqModel) ? "qwen/qwen3.8-27b" : groqModel.Trim();
         UpdateStatus();
     }
 
@@ -209,6 +219,20 @@ public class OpenRouterService : ILlmService
         if (!response.IsSuccessStatusCode)
         {
             var errMsg = ExtractErrorMessage(responseText);
+            // If OpenRouter rate limited (429) or failed, attempt Groq Cloud fallback
+            if (HasGroqFallback)
+            {
+                Console.WriteLine($"[OpenRouter] Call failed ({response.StatusCode}: {errMsg}). Failing over to Groq ({_groqModel})...");
+                try
+                {
+                    return await SendGroqCompletionAsync(systemPrompt, userPrompt, _groqModel, maxTokens, ct);
+                }
+                catch (Exception groqEx)
+                {
+                    Console.WriteLine($"[Groq Failover Error] {groqEx.Message}");
+                }
+            }
+
             StatusMessage = $"Error: {errMsg}";
             throw new InvalidOperationException($"OpenRouter ({primaryModel}) error: {errMsg}");
         }
@@ -218,6 +242,46 @@ public class OpenRouterService : ILlmService
             ? $"Ready ({actualModel})"
             : $"Ready (routed to {actualModel})";
 
+        return replyText;
+    }
+
+    private async Task<string> SendGroqCompletionAsync(
+        string systemPrompt,
+        string userPrompt,
+        string groqModel,
+        int maxTokens,
+        CancellationToken ct)
+    {
+        var payload = new
+        {
+            model = groqModel,
+            messages = new object[]
+            {
+                new { role = "system", content = systemPrompt },
+                new { role = "user", content = userPrompt }
+            },
+            temperature = 0.2,
+            max_tokens = maxTokens
+        };
+
+        var jsonPayload = JsonSerializer.Serialize(payload);
+        using var req = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/chat/completions")
+        {
+            Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json")
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _groqApiKey);
+
+        using var response = await _http.SendAsync(req, ct);
+        var responseText = await response.Content.ReadAsStringAsync(ct);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errMsg = ExtractErrorMessage(responseText);
+            throw new InvalidOperationException($"Groq ({groqModel}) error: {errMsg}");
+        }
+
+        var (replyText, actualModel) = ExtractCompletionText(responseText, groqModel);
+        StatusMessage = $"Ready (Groq failover: {actualModel})";
         return replyText;
     }
 
