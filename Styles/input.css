@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,60 +8,76 @@
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Sleek Monochrome Palette with Subtle Soft Blue Accent (Dark Theme) */
-  --canvas: #0e0e11;
-  --surface: #141418;
-  --surface-raised: #1c1c22;
-  --surface-hover: #26262e;
-  --line: #22222a;
-  --line-strong: #2e2e38;
-  --ink: #f4f4f6;
-  --ink-secondary: #9c9ca8;
-  --ink-muted: #626270;
+  /* Deep Obsidian Monochrome with Soft Electric/Cobalt Blue Accents (Dark Mode) */
+  --canvas: #09090b;             /* Pure deep zinc canvas */
+  --surface: #121216;            /* Primary cards & panels */
+  --surface-raised: #18181f;     /* Elevated interactive elements */
+  --surface-hover: #21212a;      /* Hover states */
+  --surface-active: #282834;
   
-  /* Subtle Blue Hint for Buttons / Active Elements */
-  --accent: #3b82f6;
-  --accent-hover: #60a5fa;
-  --accent-glow: rgba(59, 130, 246, 0.16);
+  --line: #22222a;               /* Crisp micro-borders */
+  --line-strong: #2e2e3a;        /* Active / focused borders */
+  --line-subtle: #191920;
+  
+  --ink: #f8f8fc;                /* Crisp bright white text */
+  --ink-secondary: #a1a1b2;      /* Slate secondary text */
+  --ink-muted: #656577;          /* Muted meta labels */
+  --ink-faint: #424250;
+  
+  /* Modern Cobalt / Electric Blue Accents */
+  --accent: #3b82f6;             /* Core vibrant blue */
+  --accent-hover: #60a5fa;        /* Lighter blue */
+  --accent-glow: rgba(59, 130, 246, 0.18);
   --accent-soft: rgba(59, 130, 246, 0.08);
-  --accent-border: rgba(59, 130, 246, 0.25);
+  --accent-border: rgba(59, 130, 246, 0.28);
+  --accent-surface: rgba(59, 130, 246, 0.12);
   
   --danger: #ef4444;
   --danger-soft: rgba(239, 68, 68, 0.12);
   --success: #10b981;
   --success-soft: rgba(16, 185, 129, 0.12);
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 20px -2px rgba(0, 0, 0, 0.65);
-  --shadow-lg: 0 12px 36px -4px rgba(0, 0, 0, 0.9);
-  --shadow-glow: 0 0 20px -2px var(--accent-glow);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 20px -2px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 12px 40px -4px rgba(0, 0, 0, 0.85);
+  --shadow-glow: 0 0 24px -2px var(--accent-glow);
+  --shadow-float: 0 16px 48px -8px rgba(0, 0, 0, 0.9), 0 0 20px -4px rgba(59, 130, 246, 0.15);
 }
 
 [data-theme="light"] {
-  /* Crisp Minimal Monochrome with Soft Slate & Subtle Blue Hint (Light Theme) */
-  --canvas: #f6f6f8;
+  /* Crisp Gallery White Monochrome with Cobalt Accents (Light Mode) */
+  --canvas: #f9f9fb;
   --surface: #ffffff;
-  --surface-raised: #eeeff2;
-  --surface-hover: #e3e4e9;
-  --line: #e2e3e8;
-  --line-strong: #caccd5;
-  --ink: #111116;
-  --ink-secondary: #4b4b56;
-  --ink-muted: #787886;
+  --surface-raised: #f1f2f6;
+  --surface-hover: #e5e7ee;
+  --surface-active: #dce0e9;
+  
+  --line: #e4e5eb;
+  --line-strong: #d0d2dd;
+  --line-subtle: #eeeff4;
+  
+  --ink: #0a0a0e;
+  --ink-secondary: #4a4b57;
+  --ink-muted: #797a89;
+  --ink-faint: #acb0bd;
   
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
-  --accent-glow: rgba(37, 99, 235, 0.12);
+  --accent-glow: rgba(37, 99, 235, 0.15);
   --accent-soft: rgba(37, 99, 235, 0.06);
-  --accent-border: rgba(37, 99, 235, 0.2);
+  --accent-border: rgba(37, 99, 235, 0.22);
+  --accent-surface: rgba(37, 99, 235, 0.08);
   
   --danger: #dc2626;
   --danger-soft: rgba(220, 38, 38, 0.08);
   --success: #059669;
   --success-soft: rgba(5, 150, 105, 0.08);
 
-  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 12px 36px -4px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 36px -4px rgba(0, 0, 0, 0.09);
+  --shadow-glow: 0 0 20px -2px var(--accent-glow);
+  --shadow-float: 0 16px 40px -8px rgba(0, 0, 0, 0.12), 0 0 16px -2px rgba(37, 99, 235, 0.08);
 }
 
 * {
@@ -77,9 +93,10 @@ html, body {
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom minimal scrollbar */
+/* Custom modern smooth scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -96,4 +113,35 @@ html, body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--ink-muted);
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background-color: rgba(18, 18, 22, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+}
+
+[data-theme="light"] .glass-panel {
+  background-color: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+}
+
+/* Interactive transitions */
+.smooth-lift {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
+}
+
+.smooth-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Subtle dot-grid canvas background for concept graph */
+.canvas-bg {
+  background-color: var(--canvas);
+  background-image: radial-gradient(var(--line-strong) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
