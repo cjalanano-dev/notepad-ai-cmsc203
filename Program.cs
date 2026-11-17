@@ -10,13 +10,16 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-// In-Browser WebGPU LLM Engine (Default: Qwen2.5-1.5B-Instruct ~1GB, zero server required)
-builder.Services.AddSingleton<WebLlmService>(sp =>
+// OpenRouter Free Cloud LLM Engine (Default: google/gemma-4-26b-a4b-it:free via .env / appsettings)
+builder.Services.AddSingleton<OpenRouterService>(sp =>
 {
-    var js = sp.GetRequiredService<IJSRuntime>();
-    return new WebLlmService(js, "Qwen2.5-1.5B-Instruct-q4f16_1-MLC");
+    var http = new HttpClient();
+    var config = sp.GetRequiredService<IConfiguration>();
+    var apiKey = config["OpenRouter:ApiKey"] ?? config["OPENROUTER_API_KEY"] ?? "";
+    var model = config["OpenRouter:Model"] ?? config["OPENROUTER_MODEL"] ?? "google/gemma-4-26b-a4b-it:free";
+    return new OpenRouterService(http, apiKey, model);
 });
-builder.Services.AddSingleton<ILlmService>(sp => sp.GetRequiredService<WebLlmService>());
+builder.Services.AddSingleton<ILlmService>(sp => sp.GetRequiredService<OpenRouterService>());
 
 builder.Services.AddSingleton<DocumentService>();
 builder.Services.AddSingleton<SqliteStorageService>();

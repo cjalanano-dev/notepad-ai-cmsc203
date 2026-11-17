@@ -22,4 +22,9 @@
     <Exec Command="cmd.exe /c &quot;npx -y tailwindcss@3.4.17 -i ./Styles/input.css -o ./wwwroot/css/app.css --minify&quot;" ContinueOnError="true" />
   </Target>
 
+  <!-- Sync .env or environment variables into wwwroot/appsettings.Development.json for Blazor WASM -->
+  <Target Name="SyncEnvToAppSettings" BeforeTargets="BeforeBuild">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;$key = $env:OPENROUTER_API_KEY; $model = if ($env:OPENROUTER_MODEL) { $env:OPENROUTER_MODEL } else { 'google/gemma-4-26b-a4b-it:free' }; if (Test-Path '.env') { Get-Content '.env' | ForEach-Object { if ($_ -match '^\s*(?:OPENROUTER_API_KEY|GEMINI_API_KEY)\s*=\s*(.*)\s*$') { $val = $Matches[1].Trim().Trim([char]34, [char]39); if ($val) { $key = $val } } elseif ($_ -match '^\s*(?:OPENROUTER_MODEL|GEMINI_MODEL)\s*=\s*(.*)\s*$') { $val = $Matches[1].Trim().Trim([char]34, [char]39); if ($val) { $model = $val } } } }; $obj = @{ OpenRouter = @{ ApiKey = [string]$key; Model = [string]$model } }; $obj | ConvertTo-Json -Depth 3 | Set-Content -Path 'wwwroot/appsettings.Development.json' -Encoding UTF8&quot;" ContinueOnError="true" />
+  </Target>
+
 </Project>

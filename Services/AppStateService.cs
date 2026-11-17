@@ -376,6 +376,42 @@ public class AppStateService
         }
     }
 
+    public async Task RegenerateConceptMapForSelectedDocumentAsync()
+    {
+        if (SelectedDocument == null || SelectedDocument.Passages.Count == 0) return;
+
+        try
+        {
+            IsAiBusy = true;
+            AiBusyMessage = $"Rebuilding hierarchical concept tree with {_ollamaService.DefaultModel}...";
+            NotifyStateChanged();
+
+            var (nodes, edges) = await _conceptService.ExtractConceptMapAsync(SelectedDocument.Filename, SelectedDocument.Passages);
+            CurrentNodes = nodes;
+            CurrentEdges = edges;
+            SelectedDocument.HasMap = true;
+            SelectedDocument.ProcessingStatus = "ready";
+
+            await _sqliteService.SaveConceptMapAsync(SelectedDocument.Id, nodes, edges);
+            await _sqliteService.UpdateDocumentStatusAsync(SelectedDocument.Id, "ready", true);
+
+            if (nodes.Count > 0)
+            {
+                SelectNode(nodes[0].Id, openModal: false);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Concept map regeneration error: {ex.Message}");
+        }
+        finally
+        {
+            IsAiBusy = false;
+            AiBusyMessage = string.Empty;
+            NotifyStateChanged();
+        }
+    }
+
     public async void MoveToTrash(int docId)
     {
         var doc = Documents.FirstOrDefault(d => d.Id == docId);
@@ -593,8 +629,8 @@ public class AppStateService
             new ChatMessage
             {
                 Role = "assistant",
-                Content = $"Hello! I am your AI reviewer companion for **{doc.Filename}** using **{_ollamaService.DefaultModel}**.\n\nYou can ask questions about concepts, request targeted explanations, or generate quizzes and study materials with verified source citations.",
-                Timestamp = DateTime.Now.AddMinutes(-5)
+                Content = $"Welcome! I am your **AI Professor & Academic Reviewer** for **{doc.Filename}**.\n\n- **Ask Concept Questions**: I will break down definitions, mechanisms, and exam takeaways with exact page citations.\n- **Explore the Concept Tree**: Click any node on the canvas to inspect its grounded explanation and source passages.\n- **Active Recall**: Use **Quiz** or **Cards** above to test your mastery.",
+                Timestamp = DateTime.Now.AddMinutes(-1)
             }
         };
     }
