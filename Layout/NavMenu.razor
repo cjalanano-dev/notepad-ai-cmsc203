@@ -84,17 +84,17 @@
             }
         </button>
 
-        <button class="flex items-center gap-3 @(AppState.IsSidebarCollapsed ? "justify-center px-0 py-2.5" : "px-3 py-2") rounded-xl border-none text-[0.85rem] font-medium cursor-pointer w-full text-left transition-all @(AppState.ActiveView == "library" ? "bg-accent/15 text-white font-semibold border border-accent/30 shadow-sm" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("library")' title="Folders & Docs">
+        <button class="flex items-center gap-3 @(AppState.IsSidebarCollapsed ? "justify-center px-0 py-2.5" : "px-3 py-2") rounded-xl border-none text-[0.85rem] font-medium cursor-pointer w-full text-left transition-all @(AppState.ActiveView == "library" ? "bg-accent/15 text-white font-semibold border border-accent/30 shadow-sm" : "bg-transparent text-ink-secondary hover:bg-surface-raised hover:text-ink")" @onclick='() => AppState.SetView("library")' title="Folders">
             <svg class="w-4 h-4 flex-shrink-0 @(AppState.ActiveView == "library" ? "text-accent" : "text-ink-secondary")" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
             </svg>
             @if (!AppState.IsSidebarCollapsed)
             {
-                <span>Folders & Docs</span>
+                <span>Folders</span>
             }
             else
             {
-                <span class="md:hidden">Folders & Docs</span>
+                <span class="md:hidden">Folders</span>
             }
         </button>
     </div>
