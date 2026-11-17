@@ -83,21 +83,14 @@ window.conceptMapInteractions = {
                     nodeGroup.setAttribute('data-node-y', newY);
                 }
 
-                // Update connected cubic bezier tree edges and edge labels
+                // Update connected edges and edge labels
                 document.querySelectorAll(`[data-source-id="${this.state.draggedNodeId}"]`).forEach(edge => {
-                    const srcHalfH = parseFloat(edge.getAttribute('data-src-half-h') || '36');
-                    const sX = newX;
-                    const sY = newY + srcHalfH;
-                    const eX = parseFloat(edge.getAttribute('data-end-x') || '0');
-                    const eY = parseFloat(edge.getAttribute('data-end-y') || '0');
-                    const ctrlY = (sY + eY) / 2;
-
-                    edge.setAttribute('data-start-x', sX);
-                    edge.setAttribute('data-start-y', sY);
-                    edge.setAttribute('d', `M ${sX} ${sY} C ${sX} ${ctrlY}, ${eX} ${ctrlY}, ${eX} ${eY}`);
-
-                    const midX = (sX + eX) / 2;
-                    const midY = (sY + eY) / 2;
+                    edge.setAttribute('x1', newX);
+                    edge.setAttribute('y1', newY);
+                    const tX = parseFloat(edge.getAttribute('x2') || '0');
+                    const tY = parseFloat(edge.getAttribute('y2') || '0');
+                    const midX = (newX + tX) / 2;
+                    const midY = (newY + tY) / 2;
                     const edgeId = edge.getAttribute('data-edge-id');
                     if (edgeId) {
                         const labelGroup = document.getElementById(`edge-label-${edgeId}`);
@@ -108,19 +101,12 @@ window.conceptMapInteractions = {
                 });
 
                 document.querySelectorAll(`[data-target-id="${this.state.draggedNodeId}"]`).forEach(edge => {
-                    const tgtHalfH = parseFloat(edge.getAttribute('data-tgt-half-h') || '31');
-                    const sX = parseFloat(edge.getAttribute('data-start-x') || '0');
-                    const sY = parseFloat(edge.getAttribute('data-start-y') || '0');
-                    const eX = newX;
-                    const eY = newY - tgtHalfH - 4;
-                    const ctrlY = (sY + eY) / 2;
-
-                    edge.setAttribute('data-end-x', eX);
-                    edge.setAttribute('data-end-y', eY);
-                    edge.setAttribute('d', `M ${sX} ${sY} C ${sX} ${ctrlY}, ${eX} ${ctrlY}, ${eX} ${eY}`);
-
-                    const midX = (sX + eX) / 2;
-                    const midY = (sY + eY) / 2;
+                    edge.setAttribute('x2', newX);
+                    edge.setAttribute('y2', newY);
+                    const sX = parseFloat(edge.getAttribute('x1') || '0');
+                    const sY = parseFloat(edge.getAttribute('y1') || '0');
+                    const midX = (sX + newX) / 2;
+                    const midY = (sY + newY) / 2;
                     const edgeId = edge.getAttribute('data-edge-id');
                     if (edgeId) {
                         const labelGroup = document.getElementById(`edge-label-${edgeId}`);

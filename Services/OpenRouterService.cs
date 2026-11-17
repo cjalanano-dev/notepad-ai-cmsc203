@@ -12,27 +12,27 @@ public class OpenRouterService : ILlmService
 
     public static readonly List<string> AvailableModels = new()
     {
+        "baidu/ernie-5.5-flash-preview:free",
+        "particle-ai/particle-1:free",
+        "nvidia/nemotron-3.5-super-vl:free",
         "google/gemma-4-26b-a4b-it:free",
         "google/gemma-4-31b-it:free",
-        "nvidia/nemotron-3.5-super-vl:free",
-        "baidu/ernie-5.5-flash-preview:free",
-        "nvidia/nemotron-3-ultra-550b-a55b:free",
-        "particle-ai/particle-1:free"
+        "nvidia/nemotron-3-ultra-550b-a55b:free"
     };
 
     private static readonly string[] FastFreeFallbacks = new[]
     {
-        "google/gemma-4-26b-a4b-it:free",
-        "nvidia/nemotron-3.5-super-vl:free",
         "baidu/ernie-5.5-flash-preview:free",
-        "particle-ai/particle-1:free"
+        "particle-ai/particle-1:free",
+        "nvidia/nemotron-3.5-super-vl:free",
+        "google/gemma-4-26b-a4b-it:free"
     };
 
     public string DefaultModel => _selectedModel;
     public bool HasApiKey => !string.IsNullOrWhiteSpace(_apiKey);
     public string StatusMessage { get; private set; } = "Ready";
 
-    public OpenRouterService(HttpClient http, string apiKey = "", string defaultModel = "google/gemma-4-26b-a4b-it:free")
+    public OpenRouterService(HttpClient http, string apiKey = "", string defaultModel = "baidu/ernie-5.5-flash-preview:free")
     {
         _http = http;
         _apiKey = apiKey?.Trim() ?? string.Empty;
@@ -148,13 +148,13 @@ public class OpenRouterService : ILlmService
 
     public async Task<string> GenerateTextAsync(string systemPrompt, string userPrompt, string? model = null, CancellationToken ct = default)
     {
-        return await SendChatCompletionAsync(systemPrompt, userPrompt, model, maxTokens: 1200, ct);
+        return await SendChatCompletionAsync(systemPrompt, userPrompt, model, maxTokens: 1600, ct);
     }
 
     public async Task<T?> GenerateStructuredAsync<T>(string systemPrompt, string userPrompt, string? model = null, CancellationToken ct = default) where T : class
     {
         var jsonPrompt = systemPrompt + "\nReturn strictly valid JSON. Do not include markdown codeblocks or extra explanations.";
-        var text = await SendChatCompletionAsync(jsonPrompt, userPrompt, model, maxTokens: 1800, ct);
+        var text = await SendChatCompletionAsync(jsonPrompt, userPrompt, model, maxTokens: 2800, ct);
         return WebLlmService.CleanAndParseJson<T>(text);
     }
 
@@ -239,11 +239,28 @@ public class OpenRouterService : ILlmService
                 choices.GetArrayLength() > 0)
             {
                 var first = choices[0];
-                if (first.TryGetProperty("message", out var msg) &&
-                    msg.TryGetProperty("content", out var contentProp) &&
-                    contentProp.ValueKind == JsonValueKind.String)
+                if (first.TryGetProperty("message", out var msg))
                 {
-                    return ((contentProp.GetString() ?? string.Empty).Trim(), modelUsed);
+                    string content = string.Empty;
+                    if (msg.TryGetProperty("content", out var contentProp) && contentProp.ValueKind == JsonValueKind.String)
+                    {
+                        content = contentProp.GetString() ?? string.Empty;
+                    }
+
+                    // For reasoning models (e.g. Ernie/DeepSeek/Nemotron), if 'content' was null/empty due to token boundaries,
+                    // check if reasoning or reasoning_details produced the JSON structure.
+                    if (string.IsNullOrWhiteSpace(content) &&
+                        msg.TryGetProperty("reasoning", out var reasonProp) &&
+                        reasonProp.ValueKind == JsonValueKind.String)
+                    {
+                        var reasonText = reasonProp.GetString() ?? string.Empty;
+                        if (reasonText.Contains("```json") || (reasonText.Contains("{") && reasonText.Contains("concepts")))
+                        {
+                            content = reasonText;
+                        }
+                    }
+
+                    return (content.Trim(), modelUsed);
                 }
             }
         }

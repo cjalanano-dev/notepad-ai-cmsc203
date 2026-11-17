@@ -37,8 +37,9 @@ public static class TextFormatter
         encoded = Regex.Replace(encoded, @"\*([^\*\n]+)\*", "<em class=\"italic text-ink-secondary\">$1</em>");
         encoded = Regex.Replace(encoded, @"(?<!\w)_([^_\n]+)_(?!\w)", "<em class=\"italic text-ink-secondary\">$1</em>");
 
-        // 7. Passage citations like [Passage 1, page 1] or [p. 1] or [Passage 2, p. 3]
-        encoded = Regex.Replace(encoded, @"\[(Passage\s+\d+[^\]]*|p\.\s*\d+[^\]]*)\]", "<span class=\"inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-raised border border-accent/30 text-accent text-[0.725rem] font-medium font-mono mx-0.5\">$1</span>");
+        // 7. Passage citations like [Passage 1, page 1] or [p. 1] or [Passage 2, p. 3] or [Citation 1]
+        encoded = Regex.Replace(encoded, @"\[(Passage\s+\d+[^\]]*|p\.\s*\d+[^\]]*|Citation\s*#?\d+[^\]]*)\]", 
+            "<span class=\"inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent/10 border border-accent/30 text-accent text-[0.725rem] font-semibold font-mono shadow-xs mx-0.5 align-baseline\"><svg class=\"w-3 h-3 text-accent shrink-0\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\"><path d=\"M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z\"/><path d=\"M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z\"/></svg>$1</span>");
 
         // 8. Headers # ## ###
         encoded = Regex.Replace(encoded, @"(?m)^###\s+(.*?)$", "<h4 class=\"text-[0.95rem] font-bold text-ink mt-3 mb-1.5\">$1</h4>");

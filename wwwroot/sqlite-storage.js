@@ -196,7 +196,7 @@ window.sqliteStorage = {
     }
 };
 
-// Document extraction helper supporting PDF, Markdown, and TXT
+// Document extraction helper supporting PDF, Markdown, and TXT with intelligent academic filtering
 window.docParser = {
     async extractPdfText(arrayBuffer) {
         if (!window.pdfjsLib) {
@@ -208,10 +208,53 @@ window.docParser = {
         const pdf = await loadingTask.promise;
         const pages = [];
 
+        // Patterns for institutional headers, professor/instructor names, course administrative logistics
+        const noiseRegex = /^(university|college|department|faculty\s+of|school\s+of|cmsc|dr\.|prof\.|engr\.|instructor|submitted\s+by|prepared\s+by|all\s+rights\s+reserved|academic\s+year|first\s+semester|second\s+semester|section\s+[a-z0-9]+)\b/i;
+
         for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(" ");
+            
+            // Build lines preserving structure
+            let lines = [];
+            let currentLine = "";
+            let lastY = null;
+
+            for (const item of textContent.items) {
+                const text = (item.str || "").trim();
+                if (!text) continue;
+
+                // Check vertical position change to delimit lines
+                const currentY = item.transform ? Math.round(item.transform[5]) : null;
+                if (lastY !== null && currentY !== null && Math.abs(currentY - lastY) > 6) {
+                    if (currentLine.trim()) {
+                        lines.push(currentLine.trim());
+                    }
+                    currentLine = text;
+                } else {
+                    currentLine = currentLine ? (currentLine + " " + text) : text;
+                }
+                lastY = currentY;
+            }
+            if (currentLine.trim()) {
+                lines.push(currentLine.trim());
+            }
+
+            // Filter out institutional boilerplate / slide numbers from page edges
+            const filteredLines = lines.filter(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return false;
+                // Exclude pure slide numbers like "1", "2 / 24", "Page 1"
+                if (/^(page\s*)?\d+(\s*(\/|of)\s*\d+)?$/i.test(trimmed)) return false;
+                // Exclude standalone institutional noise lines unless they contain technical keywords
+                if (noiseRegex.test(trimmed)) {
+                    const hasTechnicalWord = /\b(data|structure|algorithm|method|pointer|node|array|tree|list|complexity|memory|database|class|object|function)\b/i.test(trimmed);
+                    return hasTechnicalWord;
+                }
+                return true;
+            });
+
+            const pageText = filteredLines.length > 0 ? filteredLines.join("\n") : lines.join(" ");
             pages.push({ pageNumber: i, content: pageText });
         }
 

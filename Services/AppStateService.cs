@@ -259,7 +259,7 @@ public class AppStateService
         NotifyStateChanged();
     }
 
-    public void SelectNode(int nodeId, bool openModal = true)
+    public async void SelectNode(int nodeId, bool openModal = true)
     {
         SelectedNode = CurrentNodes.FirstOrDefault(n => n.Id == nodeId);
         if (SelectedNode != null && SelectedDocument != null)
@@ -283,12 +283,46 @@ public class AppStateService
                 Sources = linkedSources
             };
             IsConceptModalOpen = openModal;
+            NotifyStateChanged();
+
+            // If the explanation is basic or was fallback-generated, enrich it with a professor explanation in the background
+            if (openModal && (!SelectedNode.Explanation.Contains("**Definition**") && !SelectedNode.Explanation.Contains("**Mechanism")))
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var detailedExplanation = await _conceptService.GenerateConceptExplanationAsync(
+                            SelectedNode.Label,
+                            SelectedDocument.Filename,
+                            linkedSources,
+                            _ollamaService.DefaultModel
+                        );
+
+                        if (!string.IsNullOrWhiteSpace(detailedExplanation) && SelectedDetail?.Id == nodeId)
+                        {
+                            SelectedDetail.Explanation = detailedExplanation.Trim();
+                            SelectedNode.Explanation = detailedExplanation.Trim();
+                            NotifyStateChanged();
+
+                            await _sqliteService.ExecuteAsync(
+                                "UPDATE concept_nodes SET explanation = ? WHERE id = ?;",
+                                detailedExplanation.Trim(), nodeId
+                            );
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Concept Explanation Enrichment] {ex.Message}");
+                    }
+                });
+            }
         }
         else
         {
             IsConceptModalOpen = false;
+            NotifyStateChanged();
         }
-        NotifyStateChanged();
     }
 
     public void CloseConceptModal()
