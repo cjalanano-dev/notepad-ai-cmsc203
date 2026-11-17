@@ -55,7 +55,16 @@ public class ChatService
 
         var userPrompt = $"{historySnippet}Reviewer: {docFilename}\n\nQuestion: {question}\n\nPassages:\n{sources}";
 
-        var answer = await _ollama.GenerateTextAsync(systemPrompt, userPrompt, model, ct);
+        string answer;
+        try
+        {
+            answer = await _ollama.GenerateTextAsync(systemPrompt, userPrompt, model, ct);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ChatService] Online LLM unavailable ({ex.Message}). Using local TF-IDF offline fallback.");
+            answer = GenerateOfflineAnswer(question, selectedPassages);
+        }
 
         var citations = selectedPassages.Select(p => new ReviewerCitation
         {
@@ -71,5 +80,42 @@ public class ChatService
             Citations = citations,
             Timestamp = DateTime.Now
         };
+    }
+
+    private static string GenerateOfflineAnswer(string question, List<SourceChunkItem> topPassages)
+    {
+        if (topPassages.Count == 0)
+        {
+            return "No matching passages could be retrieved from the document.";
+        }
+
+        var primary = topPassages[0];
+        var cleanSnippet = primary.Content.Trim();
+        if (cleanSnippet.Length > 320)
+        {
+            cleanSnippet = cleanSnippet.Substring(0, 320).Trim() + "...";
+        }
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("### Core Takeaway");
+        sb.AppendLine($"Based strictly on the indexed document passages for your inquiry, the primary reference states:");
+        sb.AppendLine($"> {cleanSnippet} [Passage {primary.Id}, p. {primary.PageNumber}]");
+        sb.AppendLine();
+        sb.AppendLine("### Key Grounded Passages");
+
+        int count = Math.Min(3, topPassages.Count);
+        for (int i = 0; i < count; i++)
+        {
+            var p = topPassages[i];
+            var excerpt = p.Content.Trim();
+            if (excerpt.Length > 220) excerpt = excerpt.Substring(0, 220).Trim() + "...";
+            sb.AppendLine($"* **Passage {p.Id} (Page {p.PageNumber})**: {excerpt} [Passage {p.Id}, p. {p.PageNumber}]");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("### Reviewer Note");
+        sb.AppendLine("Offline mode active: Extracted verbatim from client-side TF-IDF passage retrieval.");
+
+        return sb.ToString();
     }
 }
