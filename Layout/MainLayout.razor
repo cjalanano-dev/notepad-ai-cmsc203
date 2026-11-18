@@ -22,6 +22,11 @@
             </div>
 
             <div class="flex items-center gap-2">
+                <button type="button" class="bg-surface-raised border border-line text-ink-secondary hover:text-accent p-2 rounded-lg flex items-center justify-center cursor-pointer transition-colors" @onclick="AppState.OpenTutorial" title="Guide & Tutorial">
+                    <svg class="w-4 h-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </button>
                 <button type="button" class="bg-surface-raised border border-line text-ink-secondary hover:text-ink p-2 rounded-lg flex items-center justify-center cursor-pointer transition-colors" @onclick="AppState.OpenCommandPalette" title="Search">
                     <svg class="w-4 h-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
@@ -116,10 +121,241 @@
             </div>
         </div>
     }
+
+    <!-- Onboarding Guided Tour Modal -->
+    @if (AppState.IsTutorialOpen)
+    {
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-md z-[120] flex items-center justify-center p-4 animate-fade-in" @onclick="CloseTutorialModal">
+            <div class="w-full max-w-xl bg-surface border border-line-strong rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-scale-in" @onclick:stopPropagation="true">
+                <!-- Header with Progress -->
+                <div class="px-6 pt-6 pb-4 border-b border-line flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-accent/15 border border-accent/30 text-accent flex items-center justify-center font-bold text-sm">
+                            @(tutorialStep + 1)
+                        </div>
+                        <div>
+                            <div class="text-[0.7rem] uppercase tracking-wider font-bold text-accent">Quick Start Guide</div>
+                            <h2 class="text-base font-bold text-ink">@GetTutorialTitle(tutorialStep)</h2>
+                        </div>
+                    </div>
+                    <button type="button" class="text-ink-muted hover:text-ink p-1.5 rounded-xl hover:bg-surface-raised transition-colors cursor-pointer" @onclick="CloseTutorialModal" title="Close guide">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="6"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Step Body -->
+                <div class="p-6 sm:p-7 overflow-y-auto flex-1 flex flex-col">
+                    @if (tutorialStep == 0)
+                    {
+                        <!-- Step 1: Welcome & Overview -->
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-16 h-16 rounded-2xl bg-surface-raised border border-line-strong flex items-center justify-center mb-4 shadow-sm relative overflow-hidden">
+                                <img src="assets/logo/conext-logo-256.webp" alt="Notepad AI" class="w-12 h-12 object-cover rounded-xl" />
+                            </div>
+                            <h3 class="text-lg font-bold text-ink mb-2">Welcome to Notepad AI!</h3>
+                            <p class="text-xs sm:text-sm text-ink-secondary leading-relaxed mb-6 max-w-md">
+                                Your source-grounded academic study companion. Transform lecture notes, syllabi, and textbooks into interactive concept graphs, grounded professor chat, and Bloom's taxonomy quizzes.
+                            </p>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full text-left">
+                                <div class="bg-surface-raised border border-line rounded-2xl p-3.5">
+                                    <div class="w-7 h-7 rounded-lg bg-accent/15 text-accent flex items-center justify-center mb-2 font-mono text-xs font-bold">1</div>
+                                    <div class="text-xs font-bold text-ink mb-1">Local & Private</div>
+                                    <div class="text-[0.7rem] text-ink-muted">PDF parsing & SQLite storage stay inside your browser.</div>
+                                </div>
+                                <div class="bg-surface-raised border border-line rounded-2xl p-3.5">
+                                    <div class="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center mb-2 font-mono text-xs font-bold">2</div>
+                                    <div class="text-xs font-bold text-ink mb-1">Source-Grounded</div>
+                                    <div class="text-[0.7rem] text-ink-muted">Zero hallucinations. Every claim cites exact page passages.</div>
+                                </div>
+                                <div class="bg-surface-raised border border-line rounded-2xl p-3.5">
+                                    <div class="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center mb-2 font-mono text-xs font-bold">3</div>
+                                    <div class="text-xs font-bold text-ink mb-1">Active Recall</div>
+                                    <div class="text-[0.7rem] text-ink-muted">Bloom's quizzes, flip cards, and rubric essay scoring.</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (tutorialStep == 1)
+                    {
+                        <!-- Step 2: Uploading -->
+                        <div class="flex flex-col">
+                            <div class="w-12 h-12 rounded-2xl bg-accent-soft border border-accent-border text-accent flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-ink mb-2">1. Upload Your Study Notes</h3>
+                            <p class="text-xs sm:text-sm text-ink-secondary leading-relaxed mb-5">
+                                Drag and drop or browse any <strong>PDF (.pdf)</strong>, <strong>Markdown (.md)</strong>, or <strong>Plain Text (.txt)</strong> document into the upload zone.
+                            </p>
+                            <div class="bg-surface-raised border border-line rounded-2xl p-4 text-xs text-ink-secondary space-y-2.5">
+                                <div class="flex items-start gap-2.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0"></span>
+                                    <span><strong>Automatic Chunking:</strong> Notepad AI segments documents into 1,200-character overlapping passages so no boundary context is lost.</span>
+                                </div>
+                                <div class="flex items-start gap-2.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0"></span>
+                                    <span><strong>Browser SQLite:</strong> Files are saved locally into your browser's persistent SQLite database.</span>
+                                </div>
+                                <div class="flex items-start gap-2.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 flex-shrink-0"></span>
+                                    <span><strong>Instant Mind Map:</strong> A structured concept hierarchy is extracted immediately.</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (tutorialStep == 2)
+                    {
+                        <!-- Step 3: Interactive Mind Map -->
+                        <div class="flex flex-col">
+                            <div class="w-12 h-12 rounded-2xl bg-accent-soft border border-accent-border text-accent flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-ink mb-2">2. Explore the Concept Graph</h3>
+                            <p class="text-xs sm:text-sm text-ink-secondary leading-relaxed mb-5">
+                                When you open a notebook, explore topics arranged in an interactive radial layout:
+                            </p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                <div class="bg-surface-raised border border-line rounded-xl p-3">
+                                    <div class="font-bold text-ink mb-1 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/>
+                                        </svg>
+                                        <span>Pan, Zoom & Drag</span>
+                                    </div>
+                                    <span class="text-ink-muted">Drag cards to rearrange topics. Scroll to zoom and pan the canvas smoothly.</span>
+                                </div>
+                                <div class="bg-surface-raised border border-line rounded-xl p-3">
+                                    <div class="font-bold text-ink mb-1 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                                        </svg>
+                                        <span>Inspect Citations</span>
+                                    </div>
+                                    <span class="text-ink-muted">Click any node to open the grounded inspector with verbatim citations & page numbers.</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (tutorialStep == 3)
+                    {
+                        <!-- Step 4: AI Professor Chat & Active Recall -->
+                        <div class="flex flex-col">
+                            <div class="w-12 h-12 rounded-2xl bg-accent-soft border border-accent-border text-accent flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-ink mb-2">3. Chat & Active Recall Tools</h3>
+                            <p class="text-xs sm:text-sm text-ink-secondary leading-relaxed mb-5">
+                                Study faster with tools engineered to test and reinforce comprehension:
+                            </p>
+                            <div class="space-y-2.5 text-xs">
+                                <div class="bg-surface-raised border border-line rounded-xl p-3 flex items-start gap-3">
+                                    <span class="px-2 py-0.5 rounded bg-accent/15 text-accent font-semibold text-[0.7rem] uppercase mt-0.5">Chat</span>
+                                    <span class="text-ink-secondary"><strong>AI Professor Chat:</strong> In-browser BM25/TF-IDF ranks the top passages before answering with structured exam takeaways.</span>
+                                </div>
+                                <div class="bg-surface-raised border border-line rounded-xl p-3 flex items-start gap-3">
+                                    <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-semibold text-[0.7rem] uppercase mt-0.5">Quiz</span>
+                                    <span class="text-ink-secondary"><strong>Knowledge Quizzes:</strong> Instant Bloom's taxonomy tests with solutions explaining why wrong options are misconceptions.</span>
+                                </div>
+                                <div class="bg-surface-raised border border-line rounded-xl p-3 flex items-start gap-3">
+                                    <span class="px-2 py-0.5 rounded bg-purple-500/15 text-purple-400 font-semibold text-[0.7rem] uppercase mt-0.5">Cards</span>
+                                    <span class="text-ink-secondary"><strong>Flashcards & Essay:</strong> Use <kbd class="px-1.5 py-0.5 bg-canvas border border-line rounded text-[0.65rem]">Space</kbd> to flip and arrow keys to cycle cards, or get 100-point essay rubric grading.</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (tutorialStep == 4)
+                    {
+                        <!-- Step 5: Folders & Shortcuts -->
+                        <div class="flex flex-col">
+                            <div class="w-12 h-12 rounded-2xl bg-accent-soft border border-accent-border text-accent flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-ink mb-2">4. Folders & Quick Navigation</h3>
+                            <p class="text-xs sm:text-sm text-ink-secondary leading-relaxed mb-5">
+                                Stay organized as your library of course reviewers grows:
+                            </p>
+                            <div class="bg-surface-raised border border-line rounded-2xl p-4 text-xs text-ink-secondary space-y-3">
+                                <div class="flex items-center justify-between border-b border-line pb-2.5">
+                                    <span class="font-medium text-ink">Drag & Drop Folders</span>
+                                    <span class="text-accent font-semibold">Library view</span>
+                                </div>
+                                <div class="flex items-center justify-between border-b border-line pb-2.5">
+                                    <span>Open Command Palette</span>
+                                    <kbd class="px-2 py-0.5 bg-canvas border border-line rounded text-[0.7rem] font-mono text-ink">Ctrl + K</kbd>
+                                </div>
+                                <div class="flex items-center justify-between border-b border-line pb-2.5">
+                                    <span>Jump to Notebooks</span>
+                                    <kbd class="px-2 py-0.5 bg-canvas border border-line rounded text-[0.7rem] font-mono text-ink">Ctrl + 1</kbd>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span>Jump to Folders</span>
+                                    <kbd class="px-2 py-0.5 bg-canvas border border-line rounded text-[0.7rem] font-mono text-ink">Ctrl + 2</kbd>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Footer with Step Indicators and Navigation -->
+                <div class="px-6 py-4 bg-surface-raised/40 border-t border-line flex items-center justify-between">
+                    <!-- Progress Dots -->
+                    <div class="flex items-center gap-1.5">
+                        @for (int i = 0; i < totalTutorialSteps; i++)
+                        {
+                            var stepIdx = i;
+                            <button type="button" 
+                                    class="h-2 rounded-full transition-all cursor-pointer @(tutorialStep == stepIdx ? "w-6 bg-accent" : "w-2 bg-line-strong hover:bg-ink-muted")"
+                                    @onclick="() => tutorialStep = stepIdx">
+                            </button>
+                        }
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-2">
+                        @if (tutorialStep > 0)
+                        {
+                            <button type="button" class="px-3.5 py-1.5 rounded-xl border border-line hover:border-line-strong hover:bg-surface-raised text-xs font-semibold text-ink-secondary hover:text-ink transition-colors cursor-pointer" @onclick="PrevTutorialStep">
+                                Back
+                            </button>
+                        }
+                        
+                        @if (tutorialStep < totalTutorialSteps - 1)
+                        {
+                            <button type="button" class="px-4 py-1.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm" @onclick="NextTutorialStep">
+                                <span>Next</span>
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="9 18 15 12 9 6"/>
+                                </svg>
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="px-4 py-1.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-bold transition-colors cursor-pointer shadow-sm" @onclick="FinishTutorial">
+                                Get Started
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
     private string searchQuery = string.Empty;
+    private int tutorialStep = 0;
+    private const int totalTutorialSteps = 5;
 
     private DotNetObjectReference<MainLayout>? dotNetHelper;
 
@@ -134,7 +370,67 @@
         {
             dotNetHelper = DotNetObjectReference.Create(this);
             await JSRuntime.InvokeVoidAsync("keyboardShortcuts.registerGlobalShortcuts", dotNetHelper);
+
+            try
+            {
+                var seen = await JSRuntime.InvokeAsync<bool>("notepadTutorialStorage.hasSeenTutorial");
+                if (!seen)
+                {
+                    AppState.OpenTutorial();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error checking tutorial status: {ex.Message}");
+            }
         }
+    }
+
+    private string GetTutorialTitle(int step) => step switch
+    {
+        0 => "Welcome to Notepad AI",
+        1 => "Upload & Ingest Notes",
+        2 => "Concept Graph & Citations",
+        3 => "AI Professor & Study Suite",
+        4 => "Folders & Keyboard Shortcuts",
+        _ => "Interactive Tour"
+    };
+
+    private void NextTutorialStep()
+    {
+        if (tutorialStep < totalTutorialSteps - 1)
+        {
+            tutorialStep++;
+        }
+    }
+
+    private void PrevTutorialStep()
+    {
+        if (tutorialStep > 0)
+        {
+            tutorialStep--;
+        }
+    }
+
+    private async Task CloseTutorialModal()
+    {
+        AppState.CloseTutorial();
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("notepadTutorialStorage.markTutorialSeen");
+        }
+        catch { }
+    }
+
+    private async Task FinishTutorial()
+    {
+        AppState.CloseTutorial();
+        tutorialStep = 0;
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("notepadTutorialStorage.markTutorialSeen");
+        }
+        catch { }
     }
 
     [JSInvokable]

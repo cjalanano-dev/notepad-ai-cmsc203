@@ -1,3 +1,24 @@
+// Storage helper for onboarding tutorial
+window.notepadTutorialStorage = {
+    hasSeenTutorial: function () {
+        try {
+            return localStorage.getItem("notepad_ai_tutorial_seen") === "true";
+        } catch (e) {
+            return false;
+        }
+    },
+    markTutorialSeen: function () {
+        try {
+            localStorage.setItem("notepad_ai_tutorial_seen", "true");
+        } catch (e) {}
+    },
+    resetTutorialSeen: function () {
+        try {
+            localStorage.removeItem("notepad_ai_tutorial_seen");
+        } catch (e) {}
+    }
+};
+
 // keyboard-shortcuts.js - Global shortcuts for Notepad AI (Ctrl+K, Esc, Ctrl+1, Ctrl+2)
 window.keyboardShortcuts = {
     dotNetRef: null,

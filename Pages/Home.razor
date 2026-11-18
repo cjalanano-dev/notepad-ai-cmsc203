@@ -16,6 +16,14 @@
                 </p>
             </div>
             <div class="flex items-center gap-3">
+                <button type="button" 
+                        class="bg-surface hover:bg-surface-raised border border-line hover:border-accent-border text-ink-secondary hover:text-ink px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer shadow-sm group"
+                        @onclick="AppState.OpenTutorial">
+                    <svg class="w-3.5 h-3.5 text-accent transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <span>Getting Started Guide</span>
+                </button>
                 <span class="text-xs font-mono px-3 py-1.5 rounded-xl bg-surface border border-line text-ink-muted">
                     @AppState.Documents.Count items
                 </span>
@@ -203,10 +211,18 @@ else if (AppState.ActiveView == "workspace")
             </div>
 
             <!-- Concept Graph Visualizer (Interactive Radial Mind Map SVG) -->
+            @{
+                var isLight = AppState.Theme == "light";
+                var arrowColor = isLight ? "#94a3b8" : "#94a3b8";
+                var edgeStrokeColor = isLight ? "#94a3b8" : "#475569";
+                var edgePillFill = isLight ? "#ffffff" : "#0f172a";
+                var edgePillStroke = isLight ? "#cbd5e1" : "#334155";
+                var edgeTextColor = isLight ? "#334155" : "#cbd5e1";
+            }
             <svg id="concept-map-svg" class="graph-canvas w-full h-full" viewBox="0 0 900 650">
                 <defs>
                     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#94a3b8" />
+                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="@arrowColor" />
                     </marker>
                 </defs>
 
@@ -227,7 +243,7 @@ else if (AppState.ActiveView == "workspace")
                                   data-target-id="@edge.TargetNodeId"
                                   x1="@source.X" y1="@source.Y"
                                   x2="@target.X" y2="@target.Y"
-                                  stroke="#64748b"
+                                  stroke="@edgeStrokeColor"
                                   stroke-width="2.5"
                                   stroke-linecap="round"
                                   marker-end="url(#arrow)" />
@@ -235,14 +251,14 @@ else if (AppState.ActiveView == "workspace")
                             @if (!string.IsNullOrWhiteSpace(edge.Relationship))
                             {
                                 <g id="edge-label-@edge.Id" transform="translate(@midX, @midY)">
-                                    <rect x="-44" y="-11" width="88" height="22" rx="5" fill="#0f172a" stroke="#475569" stroke-width="1.5" />
-                                    <text x="0" y="3.5" text-anchor="middle" font-size="9.5" font-weight="600" fill="#cbd5e1" font-family="Plus Jakarta Sans">@edge.Relationship</text>
+                                    <rect x="-44" y="-11" width="88" height="22" rx="6" fill="@edgePillFill" stroke="@edgePillStroke" stroke-width="1.5" />
+                                    <text x="0" y="3.5" text-anchor="middle" font-size="9.5" font-weight="600" fill="@edgeTextColor" font-family="Plus Jakarta Sans">@edge.Relationship</text>
                                 </g>
                             }
                         }
                     }
 
-                    <!-- Nodes (Radial Mind Map Cards with Rich Informative Text) -->
+                    <!-- Nodes (Radial Mind Map Cards with Rich Informative Text & Theme Adaptation) -->
                     @foreach (var node in AppState.CurrentNodes)
                     {
                         var isSelected = AppState.SelectedNode?.Id == node.Id;
@@ -254,10 +270,26 @@ else if (AppState.ActiveView == "workspace")
                         var halfW = nodeWidth / 2;
                         var halfH = nodeHeight / 2;
 
-                        var nodeFill = isSelected ? "#1e293b" : (isRoot ? "#0f2038" : (isSub ? "#0b0f17" : "#111827"));
-                        var nodeStroke = isSelected ? "#38bdf8" : (isRoot ? "#38bdf8" : (isSub ? "#334155" : "#475569"));
+                        // Theme-aware node background fills
+                        var nodeFill = isLight
+                            ? (isSelected ? "#eff6ff" : (isRoot ? "#f0f7ff" : (isSub ? "#ffffff" : "#f8fafc")))
+                            : (isSelected ? "#1e293b" : (isRoot ? "#0f2038" : (isSub ? "#0b0f17" : "#111827")));
+
+                        // Theme-aware node borders
+                        var nodeStroke = isLight
+                            ? (isSelected ? "#2563eb" : (isRoot ? "#3b82f6" : (isSub ? "#e2e8f0" : "#cbd5e1")))
+                            : (isSelected ? "#38bdf8" : (isRoot ? "#38bdf8" : (isSub ? "#242d3d" : "#374151")));
+
+                        // Badge text & colors
                         var badgeText = isRoot ? "MAIN TOPIC" : (isSub ? "SUBCONCEPT" : "KEY CONCEPT");
-                        var badgeColor = isRoot ? "#38bdf8" : (isSub ? "#94a3b8" : "#60a5fa");
+                        var badgeColor = isLight
+                            ? (isRoot ? "#1d4ed8" : (isSub ? "#64748b" : "#2563eb"))
+                            : (isRoot ? "#38bdf8" : (isSub ? "#94a3b8" : "#60a5fa"));
+
+                        // Text colors
+                        var titleColor = isLight ? "#0f172a" : "#f8fafc";
+                        var subtitleColor = isLight ? "#64748b" : "#94a3b8";
+                        var accentBarColor = isLight ? "#2563eb" : "#38bdf8";
 
                         <g id="node-g-@node.Id"
                            class="graph-node cursor-pointer"
@@ -269,27 +301,27 @@ else if (AppState.ActiveView == "workspace")
                            transform="translate(@(node.X - halfW), @(node.Y - halfH))"
                            @onclick="() => AppState.SelectNode(node.Id)">
                             
-                            <!-- Card Shape -->
-                            <rect width="@nodeWidth" height="@nodeHeight" rx="@(isRoot ? "12" : "8")"
+                            <!-- Card Shape with shadow in light mode -->
+                            <rect width="@nodeWidth" height="@nodeHeight" rx="@(isRoot ? "14" : "10")"
                                   fill="@nodeFill"
                                   stroke="@nodeStroke"
-                                  stroke-width="@(isSelected ? "2.5" : (isRoot ? "2" : "1.25"))" />
+                                  stroke-width="@(isSelected ? "2.5" : (isRoot ? "2" : "1.5"))" />
 
                             @if (isRoot)
                             {
-                                <rect x="0" y="0" width="4" height="@nodeHeight" rx="2" fill="#38bdf8" />
+                                <rect x="0" y="0" width="5" height="@nodeHeight" rx="2.5" fill="@accentBarColor" />
                             }
 
                             <!-- Header Badge & Detailed Title -->
                             <text x="14" y="22" font-size="8.5" font-weight="700" letter-spacing="0.05em" fill="@badgeColor" font-family="Plus Jakarta Sans">@badgeText</text>
                             
                             <!-- Title with clean clipping/display -->
-                            <text x="14" y="42" font-size="@(isRoot ? "12" : (isSub ? "10.5" : "11"))" font-weight="600" fill="#f8fafc" font-family="Plus Jakarta Sans">
+                            <text x="14" y="42" font-size="@(isRoot ? "12" : (isSub ? "10.5" : "11"))" font-weight="600" fill="@titleColor" font-family="Plus Jakarta Sans">
                                 @(node.Label.Length > 24 ? node.Label.Substring(0, 22) + "…" : node.Label)
                             </text>
 
                             <!-- Subtitle / Short Explanation Preview -->
-                            <text x="14" y="@(nodeHeight - 12)" font-size="8.5" fill="#94a3b8" font-family="Plus Jakarta Sans">
+                            <text x="14" y="@(nodeHeight - 12)" font-size="8.5" fill="@subtitleColor" font-family="Plus Jakarta Sans">
                                 @(string.IsNullOrWhiteSpace(node.Explanation) ? "Click to inspect" : (node.Explanation.Length > 28 ? node.Explanation.Substring(0, 26) + "…" : node.Explanation))
                             </text>
                         </g>

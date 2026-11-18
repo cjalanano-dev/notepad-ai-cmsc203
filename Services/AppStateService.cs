@@ -21,6 +21,7 @@ public class AppStateService
     public bool IsConceptModalOpen { get; set; } = false;
     public bool IsOriginalPreviewOpen { get; set; } = false;
     public bool IsDbLoaded { get; private set; } = false;
+    public bool IsTutorialOpen { get; set; } = false;
 
     public UserProfile User { get; set; } = new UserProfile();
     public List<DocumentItem> Documents { get; set; } = new();
@@ -139,6 +140,18 @@ public class AppStateService
     public void ToggleTheme()
     {
         Theme = Theme == "dark" ? "light" : "dark";
+        NotifyStateChanged();
+    }
+
+    public void OpenTutorial()
+    {
+        IsTutorialOpen = true;
+        NotifyStateChanged();
+    }
+
+    public void CloseTutorial()
+    {
+        IsTutorialOpen = false;
         NotifyStateChanged();
     }
 
