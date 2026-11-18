@@ -32,14 +32,16 @@ public class StudyService
         var passagesText = string.Join("\n\n", selected.Select(p => $"[Passage {p.Id}, page {p.PageNumber}]\n{p.Content}"));
 
         var systemPrompt =
-            "You are a university professor designing a rigorous, exam-level multiple-choice assessment based strictly on the provided lecture/reviewer passages.\n" +
-            "PEDAGOGICAL & DESIGN RULES:\n" +
-            "1. Generate 4 to 6 high-yield multiple-choice questions that test **conceptual understanding, cause-and-effect, and analytical application** (Bloom's Taxonomy)—avoid trivial word-matching questions.\n" +
-            "2. Each question MUST have exactly 4 plausible academic options ('options') of similar length and tone. Avoid obvious throwaway or joke distractors.\n" +
-            "3. 'answer_index' must be 0, 1, 2, or 3 corresponding to the single unambiguous correct option in 'options'.\n" +
-            "4. 'explanation' MUST act as a professor's solution walkthrough: explain **why the correct option is right** using evidence from the text, AND briefly clarify **why the main distractor is a common misconception**.\n" +
-            "5. Include valid 'passage_ids' citing the exact supporting passages.\n" +
-            "6. Return strictly JSON matching:\n" +
+            "You are a university professor designing a rigorous, exam-level academic multiple-choice assessment based strictly on the provided lecture/reviewer passages.\n" +
+            "CRITICAL INSTRUCTIONS ON QUESTION QUALITY:\n" +
+            "- NEVER ask superficial meta-questions like 'According to page X, what is the focus?', 'What is covered on page Y?', or 'What is this section about?'.\n" +
+            "- ALWAYS test substantive academic concepts, theoretical definitions, functional mechanisms, algorithmic/mathematical steps, cause-and-effect relationships, and comparative trade-offs described in the text.\n" +
+            "- Formulate realistic academic question stems (e.g., 'What is the primary function of...', 'How does X differ from Y in terms of...', 'Why does the mechanism cause Z when...', 'Which statement correctly characterizes...').\n" +
+            "- Each question MUST have exactly 4 plausible academic options of comparable length and intellectual plausibility. Distractors must represent common misconceptions or subtle conceptual errors, never jokes or obviously absurd text.\n" +
+            "- 'answer_index' must be 0, 1, 2, or 3 corresponding to the single factually correct option based on the passages.\n" +
+            "- 'explanation' MUST act as a professor's solution walkthrough: cite the principle, explain why the correct option is right, and explain why the main alternative is incorrect.\n" +
+            "- Include valid 'passage_ids' citing the exact supporting passages.\n" +
+            "- Return strictly JSON matching:\n" +
             "{\"items\": [{\"question\": \"string\", \"options\": [\"Option 1\", \"Option 2\", \"Option 3\", \"Option 4\"], \"answer_index\": 0, \"explanation\": \"string\", \"passage_ids\": [1]}]}";
 
         var userPrompt = $"Reviewer: {docFilename}\n\nReviewer passages:\n{passagesText}";
@@ -137,25 +139,33 @@ public class StudyService
     private List<QuizItem> GenerateFallbackQuiz(string docFilename, List<SourceChunkItem> passages)
     {
         var items = new List<QuizItem>();
-        for (int i = 0; i < Math.Min(4, passages.Count); i++)
+        for (int i = 0; i < Math.Min(5, passages.Count); i++)
         {
             var chunk = passages[i];
-            var lines = chunk.Content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            var firstLine = lines.FirstOrDefault() ?? "Document Concept";
-            var snippet = chunk.Content.Length > 120 ? chunk.Content.Substring(0, 120) + "..." : chunk.Content;
+            var sentences = chunk.Content
+                .Split(new[] { '.', '?', '!', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => s.Length > 20)
+                .ToList();
+
+            var subjectSentence = sentences.FirstOrDefault() ?? "Core Principle";
+            // Extract a key conceptual phrase
+            var words = subjectSentence.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var keyConcept = words.Length > 5 ? string.Join(" ", words.Take(5)) : subjectSentence;
+            var detailedExplanation = sentences.Count > 1 ? sentences[1] : subjectSentence;
 
             items.Add(new QuizItem
             {
-                Question = $"According to page {chunk.PageNumber} in {docFilename}, what is the main focus of this section?",
+                Question = $"Which statement most accurately explains the academic concept of '{keyConcept}'?",
                 Options = new List<string>
                 {
-                    snippet,
-                    "An unrelated secondary topic not covered in this section",
-                    "A historical overview irrelevant to the central subject",
-                    "A summary of future administrative procedures"
+                    detailedExplanation.Length > 120 ? detailedExplanation.Substring(0, 117) + "..." : detailedExplanation,
+                    "It operates strictly as a static external baseline without altering underlying computational or theoretical state.",
+                    "It is superseded by auxiliary configuration settings and does not impact core system behavior.",
+                    "It represents a deprecated convention replaced entirely by unstructured manual execution."
                 },
                 AnswerIndex = 0,
-                Explanation = $"As detailed on page {chunk.PageNumber}, this section focuses on: {firstLine.Trim()}.",
+                Explanation = $"According to the document source, '{keyConcept}' is defined by the following principle: \"{subjectSentence}\".",
                 Citation = $"p. {chunk.PageNumber}"
             });
         }
